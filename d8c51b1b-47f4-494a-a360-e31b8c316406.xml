@@ -1,0 +1,601 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000efb5-1f98-8000-9bc9-011c48011c48_616918</versionUuid>
+    <interface>
+        <name>NCI_OPER_downloadDocmentBanner</name>
+        <uuid>d8c51b1b-47f4-494a-a360-e31b8c316406</uuid>
+        <description>Interface que maneja los escenarios de descarga de documentos asincronos y sincronos</description>
+        <parentUuid>_a-0000ec44-2ff4-8000-9ba5-011c48011c48_7493</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>a!localVariables(
+  
+  
+  local!intentoDescarga:if(a!isNullOrEmpty(ri!intentoDescarga),false,ri!intentoDescarga),
+  {  /*Espera por BD Loading*/
+    #"SYSTEM_SYSRULES_cardLayout"(
+      contents: {
+        #"SYSTEM_SYSRULES_sideBySideLayout"(
+          items: {
+            #"SYSTEM_SYSRULES_sideBySideItem"(
+              item: #"SYSTEM_SYSRULES_imageField_v1"(
+                images: {
+                  #"SYSTEM_SYSRULES_documentImage"(
+                    document: #"_a-0000efb5-1f98-8000-9bc9-011c48011c48_609264"
+                  )
+                },
+                isThumbnail: true,
+                size: "EXTRA_SMALL"
+              ),
+              width: "MINIMIZE"
+            ),
+            #"SYSTEM_SYSRULES_sideBySideItem"(
+              /* Replace this rich text with your information message */
+              item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+                labelPosition: "COLLAPSED",
+                value: {
+                  #"SYSTEM_SYSRULES_richTextItem_v1"(
+                    text: "Descargando Archivo",
+                    style: "STRONG"
+                  ),
+                  char(10),
+                  #"SYSTEM_SYSRULES_richTextItem_v1"(
+                    text: "El documento se está descargando en segundo plano. Estará disponible para su descarga en breve."
+                  )
+                },
+                marginAbove: "NONE",
+                marginBelow: "NONE"
+              )
+            ),
+            
+
+          },
+          marginAbove: "LESS",
+          marginBelow: "LESS",
+          alignVertical: "TOP"
+        )
+      },
+      marginAbove: "NONE",
+      marginBelow: "LESS",
+      style: "#FAF8F700",
+      showBorder: false,
+      padding: "LESS",
+      decorativeBarPosition: "START",
+      decorativeBarColor: "WARN",
+      showWhen: and(
+        local!intentoDescarga,
+        a!isNullOrEmpty(ri!consultaDoc),
+        ri!mensajeRespuesta = "Incompleto"
+      )
+    ),
+  /*Intento por BD CORRECTO*/
+  #"SYSTEM_SYSRULES_cardLayout"(
+    contents: {
+      #"SYSTEM_SYSRULES_sideBySideLayout"(
+        items: {
+          #"SYSTEM_SYSRULES_sideBySideItem"(
+            item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+              labelPosition: "COLLAPSED",
+              value: {
+                #"SYSTEM_SYSRULES_richTextIcon"(
+                  icon: "file-download",
+                  size: "LARGE_PLUS",
+                  color: "POSITIVE",
+                  link: #"SYSTEM_SYSRULES_documentDownloadLink"(ri!consultaDoc[#"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ff66f5c1-2834-4e29-8465-698568d9785e"])
+                )
+              },
+              marginAbove: "NONE",
+              marginBelow: "NONE"
+            ),
+            width: "MINIMIZE"
+          ),
+          #"SYSTEM_SYSRULES_sideBySideItem"(
+            /* Replace this rich text with your information message */
+            item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+              labelPosition: "COLLAPSED",
+              value: {
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: "Archivo disponible",
+                  style: "STRONG"
+                ),
+                char(10),
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: "El documento puede descargarlo en el siguiente link:   "
+                ),
+                char(32),
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: if(
+                    a!isNotNullOrEmpty(ri!consultaDoc[#"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ff66f5c1-2834-4e29-8465-698568d9785e"]),
+                    ri!nombre,
+                    ""
+                  ),
+                  link: #"SYSTEM_SYSRULES_documentDownloadLink"(ri!consultaDoc[#"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ff66f5c1-2834-4e29-8465-698568d9785e"])
+                )
+              },
+              marginAbove: "NONE",
+              marginBelow: "NONE"
+            )
+          ),
+          #"SYSTEM_SYSRULES_sideBySideItem"(
+            item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+              labelPosition: "COLLAPSED",
+              value: {
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: if(
+                    a!isNotNullOrEmpty(ri!consultaDoc[#"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ff66f5c1-2834-4e29-8465-698568d9785e"]),
+                    document(ri!consultaDoc[#"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ff66f5c1-2834-4e29-8465-698568d9785e"], "dateCreated"),
+                    ""
+                  )
+                ),
+                char(10),
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: if(
+                    a!isNotNullOrEmpty(ri!consultaDoc[#"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ff66f5c1-2834-4e29-8465-698568d9785e"]),
+                    text(
+                      tointeger(document(ri!consultaDoc[#"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ff66f5c1-2834-4e29-8465-698568d9785e"], "size")) / (1024 * 1024),
+                      "00.00"
+                    ) &amp; " MB",
+                    ""
+                  )
+                )
+              },
+              align: "RIGHT"
+            ),
+            width: "MINIMIZE"
+          ),
+          /*a!sideBySideItem(*/
+          /*item: a!buttonArrayLayout(*/
+          /*buttons: { a!buttonWidget(label: "Cerrar",style: "OUTLINE",*/
+          /*value: false,*/
+          /*saveInto: {a!save(local!intentoDescarga,false),a!save(ri!docId_int,null),a!save(ri!mensajeRespuesta,null) },color: cons!NCI_Color_Azul_Medio_Text), },*/
+          /*marginBelow: "NONE"*/
+          /*),*/
+          /*width: "MINIMIZE"*/
+          /*)*/
+
+        },
+        marginAbove: "LESS",
+        marginBelow: "LESS",
+        alignVertical: "TOP"
+      ),
+      #"SYSTEM_SYSRULES_sideBySideLayout"(
+        items: {
+          #"SYSTEM_SYSRULES_sideBySideItem"(
+            item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+              labelPosition: "COLLAPSED",
+              value: {
+                #"SYSTEM_SYSRULES_richTextIcon"(
+                  icon: "envelope-o",
+                  size: "LARGE_PLUS",
+                  color: "POSITIVE",
+
+                )
+              },
+              marginAbove: "NONE",
+              marginBelow: "NONE"
+            ),
+            width: "MINIMIZE"
+          ),
+          #"SYSTEM_SYSRULES_sideBySideItem"(
+            /* Replace this rich text with your information message */
+            item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+              labelPosition: "COLLAPSED",
+              value: {
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: if(
+                    a!isNullOrEmpty(ri!consultaDoc[#"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ac8c984e-65da-494c-9095-6de801262d48"]),
+                    "Archivo enviado al correo :  " &amp; user(loggedInUser(), "email"),
+                    ri!consultaDoc[#"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ac8c984e-65da-494c-9095-6de801262d48"]
+                  ),
+                  style: "STRONG"
+                ),
+                char(10),
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: "El documento supera el límite de tamaño.",
+                  showWhen: a!isNotNullOrEmpty(ri!consultaDoc[#"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ac8c984e-65da-494c-9095-6de801262d48"])
+                ),
+
+              },
+              marginAbove: "NONE",
+              marginBelow: "NONE"
+            )
+          ),
+
+        },
+        marginAbove: "LESS",
+        marginBelow: "LESS",
+        alignVertical: "TOP"
+      )
+    },
+    marginAbove: "NONE",
+    marginBelow: "LESS",
+    style: "SUCCESS",
+    showBorder: false,
+    padding: "LESS",
+    decorativeBarPosition: "START",
+    decorativeBarColor: "POSITIVE",
+    showWhen: and(
+      local!intentoDescarga,
+      a!isNotNullOrEmpty(ri!consultaDoc[#"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ff66f5c1-2834-4e29-8465-698568d9785e"]),
+      ri!mensajeRespuesta = "Incompleto"
+    )
+  ),
+  /*Intento por BD Error Banner with Action */
+  #"SYSTEM_SYSRULES_cardLayout"(
+    contents: {
+      #"SYSTEM_SYSRULES_sideBySideLayout"(
+        items: {
+          #"SYSTEM_SYSRULES_sideBySideItem"(
+            item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+              labelPosition: "COLLAPSED",
+              value: {
+                #"SYSTEM_SYSRULES_richTextIcon"(
+                  icon: "info-circle",
+                  size: "STANDARD",
+                  color: "NEGATIVE"
+                )
+              },
+              marginAbove: "NONE",
+              marginBelow: "NONE"
+            ),
+            width: "MINIMIZE"
+          ),
+          #"SYSTEM_SYSRULES_sideBySideItem"(
+            /* Replace this rich text with your information message */
+            item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+              labelPosition: "COLLAPSED",
+              value: {
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  
+                  text: ri!consultaDoc[#"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ac8c984e-65da-494c-9095-6de801262d48"],
+                  style: "STRONG"
+                ),
+                char(10),
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: "Contacte al administrador del sistema."
+                ),
+                char(10),
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: "Fecha :  " &amp; text(now(), "dd/mm/yyyy hh:mm:ss")
+                ),
+
+              },
+              marginAbove: "NONE",
+              marginBelow: "NONE"
+            )
+          ),
+          /*a!sideBySideItem(*/
+          /*item: a!buttonArrayLayout(*/
+          /*buttons: { a!buttonWidget(label: "Cerrar",style: "OUTLINE",*/
+          /*value: false,*/
+          /*saveInto: {a!save(local!intentoDescarga,false),a!save(ri!docId_int,null) },color: cons!NCI_Color_Azul_Medio_Text), },*/
+          /*marginBelow: "NONE"*/
+          /*),*/
+          /*width: "MINIMIZE"*/
+          /*)*/
+
+        },
+        marginAbove: "LESS",
+        marginBelow: "LESS",
+        alignVertical: "TOP"
+      )
+    },
+    marginAbove: "NONE",
+    marginBelow: "LESS",
+    style: "ERROR",
+    showBorder: false,
+    padding: "LESS",
+    showWhen: and(
+      local!intentoDescarga,
+      a!isNotNullOrEmpty(ri!consultaDoc[#"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ac8c984e-65da-494c-9095-6de801262d48"]),
+      ri!mensajeRespuesta = "Incompleto"
+    ),
+    decorativeBarPosition: "START",
+    decorativeBarColor: "NEGATIVE"
+  ),
+  /*Intento CORRECTO  sincrono*/
+  #"SYSTEM_SYSRULES_cardLayout"(
+    contents: {
+      #"SYSTEM_SYSRULES_sideBySideLayout"(
+        items: {
+          #"SYSTEM_SYSRULES_sideBySideItem"(
+            item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+              labelPosition: "COLLAPSED",
+              value: {
+                #"SYSTEM_SYSRULES_richTextIcon"(
+                  icon: "file-download",
+                  size: "LARGE_PLUS",
+                  color: "POSITIVE",
+                  link: #"SYSTEM_SYSRULES_documentDownloadLink"(ri!docId_int)
+                )
+              },
+              marginAbove: "NONE",
+              marginBelow: "NONE"
+            ),
+            width: "MINIMIZE"
+          ),
+          #"SYSTEM_SYSRULES_sideBySideItem"(
+            /* Replace this rich text with your information message */
+            item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+              labelPosition: "COLLAPSED",
+              value: {
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: "Archivo disponible",
+                  style: "STRONG"
+                ),
+                char(10),
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: "El documento puede descargarlo en el siguiente link:   "
+                ),
+                char(32),
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: if(
+                    a!isNotNullOrEmpty(ri!docId_int),
+                    ri!nombre,
+                    ""
+                  ),
+                  link: #"SYSTEM_SYSRULES_documentDownloadLink"(ri!docId_int)
+                )
+              },
+              marginAbove: "NONE",
+              marginBelow: "NONE"
+            )
+          ),
+          #"SYSTEM_SYSRULES_sideBySideItem"(
+            item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+              labelPosition: "COLLAPSED",
+              value: {
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: if(
+                    a!isNotNullOrEmpty(ri!docId_int),
+                    document(ri!docId_int, "dateCreated"),
+                    ""
+                  )
+                ),
+                char(10),
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: if(
+                    a!isNotNullOrEmpty(ri!docId_int),
+                    text(
+                      tointeger(document(ri!docId_int, "size")) / (1024 * 1024),
+                      "00.00"
+                    ) &amp; " MB",
+                    ""
+                  )
+                )
+              },
+              align: "RIGHT"
+            ),
+            width: "MINIMIZE"
+          ),
+          /*a!sideBySideItem(*/
+          /*item: a!buttonArrayLayout(*/
+          /*buttons: { a!buttonWidget(label: "Cerrar",style: "OUTLINE",*/
+          /*value: false,*/
+          /*saveInto: {a!save(local!intentoDescarga,false),a!save(ri!docId_int,null),a!save(ri!mensajeRespuesta,null) },color: cons!NCI_Color_Azul_Medio_Text), },*/
+          /*marginBelow: "NONE"*/
+          /*),*/
+          /*width: "MINIMIZE"*/
+          /*)*/
+
+        },
+        marginAbove: "LESS",
+        marginBelow: "LESS",
+        alignVertical: "TOP"
+      ),
+      #"SYSTEM_SYSRULES_sideBySideLayout"(
+        items: {
+          #"SYSTEM_SYSRULES_sideBySideItem"(
+            item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+              labelPosition: "COLLAPSED",
+              value: {
+                #"SYSTEM_SYSRULES_richTextIcon"(
+                  icon: "envelope-o",
+                  size: "LARGE_PLUS",
+                  color: "POSITIVE",
+
+                )
+              },
+              marginAbove: "NONE",
+              marginBelow: "NONE"
+            ),
+            width: "MINIMIZE"
+          ),
+          #"SYSTEM_SYSRULES_sideBySideItem"(
+            /* Replace this rich text with your information message */
+            item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+              labelPosition: "COLLAPSED",
+              value: {
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: if(
+                    a!isNullOrEmpty(ri!mensajeRespuesta),
+                    "Archivo enviado al correo :  " &amp; user(loggedInUser(), "email"),
+                    ri!mensajeRespuesta
+                  ),
+                  style: "STRONG"
+                ),
+                char(10),
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: "El documento supera el límite de tamaño.",
+                  showWhen: a!isNotNullOrEmpty(ri!mensajeRespuesta)
+                ),
+
+              },
+              marginAbove: "NONE",
+              marginBelow: "NONE"
+            )
+          ),
+
+        },
+        marginAbove: "LESS",
+        marginBelow: "LESS",
+        alignVertical: "TOP"
+      )
+    },
+    marginAbove: "NONE",
+    marginBelow: "LESS",
+    style: "SUCCESS",
+    showBorder: false,
+    padding: "LESS",
+    decorativeBarPosition: "START",
+    decorativeBarColor: "POSITIVE",
+    showWhen: and(
+      local!intentoDescarga,
+      a!isNotNullOrEmpty(ri!docId_int),
+      ri!mensajeRespuesta &lt;&gt; "Incompleto"
+    )
+  ),
+  /* Error sincrono*/
+  #"SYSTEM_SYSRULES_cardLayout"(
+    contents: {
+      #"SYSTEM_SYSRULES_sideBySideLayout"(
+        items: {
+          #"SYSTEM_SYSRULES_sideBySideItem"(
+            item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+              labelPosition: "COLLAPSED",
+              value: {
+                #"SYSTEM_SYSRULES_richTextIcon"(
+                  icon: "info-circle",
+                  size: "STANDARD",
+                  color: "NEGATIVE"
+                )
+              },
+              marginAbove: "NONE",
+              marginBelow: "NONE"
+            ),
+            width: "MINIMIZE"
+          ),
+          #"SYSTEM_SYSRULES_sideBySideItem"(
+            /* Replace this rich text with your information message */
+            item: #"SYSTEM_SYSRULES_richTextDisplayField"(
+              labelPosition: "COLLAPSED",
+              value: {
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: ri!mensajeRespuesta,
+                  style: "STRONG"
+                ),
+                char(10),
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: "Contacte al administrador del sistema."
+                ),
+                char(10),
+                #"SYSTEM_SYSRULES_richTextItem_v1"(
+                  text: "Fecha :  " &amp; text(now(), "dd/mm/yyyy hh:mm:ss")
+                ),
+
+              },
+              marginAbove: "NONE",
+              marginBelow: "NONE"
+            )
+          ),
+          /*a!sideBySideItem(*/
+          /*item: a!buttonArrayLayout(*/
+          /*buttons: { a!buttonWidget(label: "Cerrar",style: "OUTLINE",*/
+          /*value: false,*/
+          /*saveInto: {a!save(local!intentoDescarga,false),a!save(ri!docId_int,null) },color: cons!NCI_Color_Azul_Medio_Text), },*/
+          /*marginBelow: "NONE"*/
+          /*),*/
+          /*width: "MINIMIZE"*/
+          /*)*/
+
+        },
+        marginAbove: "LESS",
+        marginBelow: "LESS",
+        alignVertical: "TOP"
+      )
+    },
+    marginAbove: "NONE",
+    marginBelow: "LESS",
+    style: "ERROR",
+    showBorder: false,
+    padding: "LESS",
+    showWhen: and(
+      local!intentoDescarga,
+      a!isNullOrEmpty(ri!docId_int),
+      ri!mensajeRespuesta &lt;&gt; "Incompleto"
+    ),
+    decorativeBarPosition: "START",
+    decorativeBarColor: "NEGATIVE"
+  )
+  }
+)</definition>
+        <namedTypedValue>
+            <name>docId_int</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>nombre</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>mensajeRespuesta</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>intentoDescarga</name>
+            <type>
+                <name>boolean</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>consultaDoc</name>
+            <type>
+                <name>610f6033-ded9-4a2c-88f7-ce3d3916704f</name>
+                <namespace>urn:com:appian:recordtype:datatype</namespace>
+            </type>
+        </namedTypedValue>
+        <preferredEditor>interface</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+        <isCustom>false</isCustom>
+    </interface>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <history>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_592330"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_601799"/>
+        <historyInfo versionUuid="_a-0000efb5-1f98-8000-9bc9-011c48011c48_616918"/>
+    </history>
+</contentHaul>

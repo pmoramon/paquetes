@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000ef47-4270-8000-9bc5-011c48011c48_605405</versionUuid>
+    <rule>
+        <name>NCI_OPER_getUserPreviousAction</name>
+        <uuid>_a-0000ef47-4270-8000-9bc5-011c48011c48_579014</uuid>
+        <description>Regla que extrae la ultima persona que ejecutó accion sobre un flujo </description>
+        <parentUuid>_a-0000eeb4-c217-8000-9bbf-011c48011c48_432670</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>a!localVariables(
+  local!consultaRequest: if(a!isNotNullOrEmpty(ri!folio),index(
+    index(
+      #"SYSTEM_SYSRULES_queryRecordType_v4"(
+        recordType: #"urn:appian:record-type:v1:a315ffb2-c16e-4d86-9cfe-e5e734d7c6ae",
+        fields: {
+          #"urn:appian:record-field:v1:a315ffb2-c16e-4d86-9cfe-e5e734d7c6ae/fadad090-4a6e-4a65-a1ec-fc44ef70feb4",
+          
+        },
+        filters: #"SYSTEM_SYSRULES_queryLogicalExpression"(
+          operator: "AND",
+          filters: {
+            #"SYSTEM_SYSRULES_queryFilter"(
+              field: #"urn:appian:record-field:v1:a315ffb2-c16e-4d86-9cfe-e5e734d7c6ae/caa6af34-054f-44f9-8bc1-1badbc279596",
+              operator: "=",
+              value: #"_a-0000ee7f-40c0-8000-9bb9-011c48011c48_382094"[1]
+            ),
+            #"SYSTEM_SYSRULES_queryFilter"(
+              field: #"urn:appian:record-field:v1:a315ffb2-c16e-4d86-9cfe-e5e734d7c6ae/fadad090-4a6e-4a65-a1ec-fc44ef70feb4",
+              operator: "includes",
+              value: "usuarioActualizacion",
+              
+            ),
+            #"SYSTEM_SYSRULES_queryFilter"(
+              field: #"urn:appian:record-field:v1:a315ffb2-c16e-4d86-9cfe-e5e734d7c6ae/33657d75-8265-40ee-9c8b-a593735faba1",
+              operator: "=",
+              value: ri!folio,
+              applyWhen: a!isNotNullOrEmpty(ri!folio)
+            ),
+            #"SYSTEM_SYSRULES_queryFilter"(
+              field: #"urn:appian:record-field:v1:a315ffb2-c16e-4d86-9cfe-e5e734d7c6ae/c204795c-2e4d-4763-a9b3-1b009241736d",
+              operator: "=",
+              value: "20",
+              
+            ),
+            
+          }
+        ),
+        pagingInfo: #"SYSTEM_SYSRULES_pagingInfo"(
+          startIndex: 1,
+          batchSize: 50,
+          sort: #"SYSTEM_SYSRULES_sortInfo"(
+            field: #"urn:appian:record-field:v1:a315ffb2-c16e-4d86-9cfe-e5e734d7c6ae/d858446e-88fc-460a-bc24-03096f173036",
+            ascending: false
+          )
+        )
+      ),
+      "data",
+      null
+    ),
+    #"urn:appian:record-field:v1:a315ffb2-c16e-4d86-9cfe-e5e734d7c6ae/fadad090-4a6e-4a65-a1ec-fc44ef70feb4",
+    1,
+    null
+  ),null),
+  local!usuarioActualizacion: if(a!isNotNullOrEmpty(local!consultaRequest),index(
+    #"SYSTEM_SYSRULES_fromJson_v1"(local!consultaRequest),
+    "usuarioActualizacion",
+    null
+  ),null),
+  left(if(a!isNotNullOrEmpty(local!usuarioActualizacion),local!usuarioActualizacion,if(a!isNotNullOrEmpty(ri!user),ri!user,"Appian User")),28)
+)</definition>
+        <namedTypedValue>
+            <name>folio</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>user</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <preferredEditor>legacy</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+    </rule>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <typedValue>
+        <type>
+            <name>RuleTestConfig?list</name>
+            <namespace>http://www.appian.com/ae/types/2009</namespace>
+        </type>
+        <value>
+            <el>
+                <a:name>Returns user from request when available</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"TEST123"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"DefaultUser"</a:value>
+                    <a:nameRef>user</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Returns default user when folio is empty</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string"/>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"DefaultUser"</a:value>
+                    <a:nameRef>user</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Returns Appian User when both inputs are empty</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string"/>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string"/>
+                    <a:nameRef>user</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Truncates result to 28 characters</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string"/>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"ThisIsAVeryLongUserNameThatExceedsTheLimit"</a:value>
+                    <a:nameRef>user</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Returns user input when request is null</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"NONEXISTENT"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"BackupUser"</a:value>
+                    <a:nameRef>user</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Handles valid folio with user fallback</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"FOL456"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"FallbackUser"</a:value>
+                    <a:nameRef>user</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Returns exactly 28 characters when user is longer</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string"/>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"VeryLongUserNameThatNeedsToBeExactly28Characters"</a:value>
+                    <a:nameRef>user</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Preserves short user name</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string"/>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"John"</a:value>
+                    <a:nameRef>user</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Returns correct output type</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"TEST789"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"TestUser"</a:value>
+                    <a:nameRef>user</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions>
+                    <a:expectedOutput xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                    <a:resultAssertions>typeof(test!output) = 'type!{http://www.appian.com/ae/types/2009}Text'</a:resultAssertions>
+                </a:assertions>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Handles special characters in folio</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"FOL-123@ABC"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"SpecialUser"</a:value>
+                    <a:nameRef>user</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Returns non-empty result</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"VALID123"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"ValidUser"</a:value>
+                    <a:nameRef>user</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions>
+                    <a:expectedOutput xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                    <a:resultAssertions>a!isNotNullOrEmpty(test!output)</a:resultAssertions>
+                </a:assertions>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Defaults to Appian User when user is null</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"NOUSER"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string"/>
+                    <a:nameRef>user</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+        </value>
+    </typedValue>
+    <history>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_580486"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_605405"/>
+    </history>
+</contentHaul>

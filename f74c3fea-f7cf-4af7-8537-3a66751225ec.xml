@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000ef47-4270-8000-9bc5-011c48011c48_605341</versionUuid>
+    <rule>
+        <name>NCI_OPER_getDataFromDownloadDocument</name>
+        <uuid>f74c3fea-f7cf-4af7-8537-3a66751225ec</uuid>
+        <description>Obtiene los datos de la tabla donde se manejan las descargas que sobrepasan el tiempo de espera</description>
+        <parentUuid>_a-0000ec44-2ff4-8000-9ba5-011c48011c48_8061</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>if(and(a!isNotNullOrEmpty(ri!folio),a!isNotNullOrEmpty(ri!option)),
+index(
+  #"SYSTEM_SYSRULES_queryRecordType_v4"(
+    recordType: #"urn:appian:record-type:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f",
+    fields: {
+      #"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ac8c984e-65da-494c-9095-6de801262d48",
+      #"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/0531e4e4-fca8-4349-86b7-f704e9e35de9",
+      #"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/ff66f5c1-2834-4e29-8465-698568d9785e"
+
+    },
+    filters: #"SYSTEM_SYSRULES_queryLogicalExpression"(
+      operator: "AND",
+      filters: {
+        #"SYSTEM_SYSRULES_queryFilter"(
+          field: #"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/841b0e5a-e5cf-4550-9e9a-759dec112e31",
+          operator: "=",
+          value: ri!folio
+        ),
+        #"SYSTEM_SYSRULES_queryFilter"(
+          field: #"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/66c85ad8-ce90-4723-aefd-79da6291f62f",
+          operator: "=",
+          value: ri!option
+        ),
+        #"SYSTEM_SYSRULES_queryFilter"(
+          field: #"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/abc86b6a-ae3f-4137-bec3-10c2aa93572a",
+          operator: "=",
+          value: ri!idInstancia,
+          applyWhen: a!isNotNullOrEmpty(ri!idInstancia)
+        ),
+
+      }
+    ),
+    pagingInfo: #"SYSTEM_SYSRULES_pagingInfo"(
+      startIndex: 1,
+      batchSize: 50,
+      sort: #"SYSTEM_SYSRULES_sortInfo"(
+        field: #"urn:appian:record-field:v1:610f6033-ded9-4a2c-88f7-ce3d3916704f/70c0073a-f612-4e88-99da-49bd7c068138",
+        ascending: false
+      )
+    )
+  ),
+  "data",
+  null
+),{})</definition>
+        <namedTypedValue>
+            <name>folio</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>option</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>idInstancia</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <preferredEditor>legacy</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+    </rule>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <typedValue>
+        <type>
+            <name>RuleTestConfig?list</name>
+            <namespace>http://www.appian.com/ae/types/2009</namespace>
+        </type>
+        <value>
+            <el>
+                <a:name>Valid folio and option with idInstancia</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"FOL123"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">1</a:value>
+                    <a:nameRef>option</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">100</a:value>
+                    <a:nameRef>idInstancia</a:nameRef>
+                    <a:id>3</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Valid folio and option without idInstancia</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"FOL456"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">2</a:value>
+                    <a:nameRef>option</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>idInstancia</a:nameRef>
+                    <a:id>3</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Returns null for no matching records</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"NONEXISTENT"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">99</a:value>
+                    <a:nameRef>option</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>idInstancia</a:nameRef>
+                    <a:id>3</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions>
+                    <a:expectedOutput>
+                        <a:type a:uuid="{urn:com:appian:recordtype:datatype}610f6033-ded9-4a2c-88f7-ce3d3916704f?list"/>
+                        <a:runtimeType a:uuid="{urn:com:appian:recordtype:datatype}610f6033-ded9-4a2c-88f7-ce3d3916704f?list"/>
+                    </a:expectedOutput>
+                </a:assertions>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Query executes with minimum option value</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"FOL001"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">1</a:value>
+                    <a:nameRef>option</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>idInstancia</a:nameRef>
+                    <a:id>3</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Query executes with maximum option value</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"FOL999"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">64</a:value>
+                    <a:nameRef>option</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>idInstancia</a:nameRef>
+                    <a:id>3</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Handles empty folio</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">""</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">1</a:value>
+                    <a:nameRef>option</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>idInstancia</a:nameRef>
+                    <a:id>3</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Query with special characters in folio</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"FOL-123_ABC"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">5</a:value>
+                    <a:nameRef>option</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>idInstancia</a:nameRef>
+                    <a:id>3</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Query with large idInstancia value</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"FOL999"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">10</a:value>
+                    <a:nameRef>option</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">999999</a:value>
+                    <a:nameRef>idInstancia</a:nameRef>
+                    <a:id>3</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Filters are applied with all parameters</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"FOLIO_TEST"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">7</a:value>
+                    <a:nameRef>option</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">200</a:value>
+                    <a:nameRef>idInstancia</a:nameRef>
+                    <a:id>3</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Query with numeric-only folio</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"123456"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">15</a:value>
+                    <a:nameRef>option</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>idInstancia</a:nameRef>
+                    <a:id>3</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>false</a:isDefault>
+            </el>
+            <el>
+                <a:name>Query returns sorted results</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">"SORT_TEST"</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">20</a:value>
+                    <a:nameRef>option</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>idInstancia</a:nameRef>
+                    <a:id>3</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions>
+                    <a:expectedOutput xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                    <a:resultAssertions>or(a!isNullOrEmpty(test!output), length(test!output) &lt;= 50)</a:resultAssertions>
+                </a:assertions>
+                <a:isDefault>false</a:isDefault>
+            </el>
+        </value>
+    </typedValue>
+    <history>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_589783"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_605341"/>
+    </history>
+</contentHaul>

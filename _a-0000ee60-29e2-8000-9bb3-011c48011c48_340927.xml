@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000ef47-4270-8000-9bc5-011c48011c48_582417</versionUuid>
+    <decision>
+        <name>NCI_OPER_SNAPSHOT</name>
+        <uuid>_a-0000ee60-29e2-8000-9bb3-011c48011c48_340927</uuid>
+        <description>Regla que indica el snapshop que se va guardar en BD para cada Tramite</description>
+        <parentUuid>_a-0000ec60-cceb-8000-9ba6-011c48011c48_18083</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>fn!override_exception_appian_internal(fn!with(local!decisiondefinition: a!decisiondesigner_cache(uuid: "_a-0000ee60-29e2-8000-9bb3-011c48011c48_340927",versionKey: "a8607b8f-52d4-448a-b0bd-a5ccbf322b63",value: #"SYSTEM_SYSRULES_dd_dd"('hitPolicy': #"SYSTEM_SYSRULES_dd_dhp"("UNIQUE"), 'inputs': {#"SYSTEM_SYSRULES_dd_di"('name': "idProceso", 'type': 'type!{http://www.appian.com/ae/types/2009}Text', 'id': 1, 'restrictionType': #"SYSTEM_SYSRULES_dd_dirt"("LOOKUP"), 'restriction': #"SYSTEM_SYSRULES_dd_dirl"('allowedLabels': {"RECAUDACION", "TRASPASOS"}, 'allowedValues': {"7", "97"})), #"SYSTEM_SYSRULES_dd_di"('name': "idSubProceso", 'type': 'type!{http://www.appian.com/ae/types/2009}Text', 'id': 2, 'restrictionType': #"SYSTEM_SYSRULES_dd_dirt"("LOOKUP"), 'restriction': #"SYSTEM_SYSRULES_dd_dirl"('allowedLabels': {"Dispersión Ordinaria IMSS", "Dispersión Ordinaria ISSSTE", "Dispersión Gubernamental IMSS", "Dispersión Gubernamental ISSSTE", "Dispersión intereses en Tránsito IMSS", "Dispersión Ordinaria Aclaraciones Especiales", "Dispersión intereses en Tránsito ISSSTE", "DESMARCA DE CRÉDITO DE VIVIENDA POR 43 BIS", "SOLICITUD DE MARCA DE CUENTAS POR 43 BIS", "DEVOLUCIÓN DE EXCEDENTES POR 43 BIS", "DEVOLUCIÓN DE EXCEDENTES POR T.A. AG INFONAVIT", "TRANSFERENCIA DE RECURSOS POR PORTABILIDAD", "TRANSFERENCIAS DE ACREDITADOS INFONAVIT ", "TRANSFERENCIA POR ANUALIDAD GARANTIZADA", "USO DE GARANTÍA POR 43 BIS", "DEVOLUCIÓN DE EXCEDENTES POR T.A FOVISSSTE", "DESMARCA FOVISSSTE", "TRANSFERENCIAS DE ACREDITADOS FOVISSSTE", "DEVOLUCIÓN DE PAGOS SIN JUSTIFICACIÓN LEGAL", "REDENCION ANTICIPADA BONO ISSSTE", "REDENCION ANUAL BONO ISSSTE"}, 'allowedValues': {"8", "120", "439", "210", "121", "118", "122", "347", "354", "348", "349", "3286", "364", "365", "368", "350", "3283", "363", "3832", "131", "132"}))}, 'outputs': {#"SYSTEM_SYSRULES_dd_do"('id': 1, 'name': "Snap", 'type': 'type!{http://www.appian.com/ae/types/2009}Text', 'restrictionType': #"SYSTEM_SYSRULES_dd_dort"("NONE"), 'returnListType': false)}, 'rules': {#"SYSTEM_SYSRULES_dd_dr"('id': 1, 'inputs': {#"SYSTEM_SYSRULES_dd_dri"('id': 1, 'decisionInputId': 1, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"7"})), #"SYSTEM_SYSRULES_dd_dri"('id': 2, 'decisionInputId': 2, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"8", "439", "121", "118", "3832"}))}, 'outputs': {#"SYSTEM_SYSRULES_dd_dro"('id': 1, 'decisionOutputId': 1, 'value': "AP Profuturo DISP IMSS V1.0")}), #"SYSTEM_SYSRULES_dd_dr"('id': 2, 'inputs': {#"SYSTEM_SYSRULES_dd_dri"('id': 3, 'decisionInputId': 1, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"97"})), #"SYSTEM_SYSRULES_dd_dri"('id': 4, 'decisionInputId': 2, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"347", "354", "348", "349", "3286", "364", "365", "368"}))}, 'outputs': {#"SYSTEM_SYSRULES_dd_dro"('id': 2, 'decisionOutputId': 1, 'value': "AP Profuturo TRASP INFO V1.0")}), #"SYSTEM_SYSRULES_dd_dr"('id': 3, 'inputs': {#"SYSTEM_SYSRULES_dd_dri"('id': 5, 'decisionInputId': 1, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"7"})), #"SYSTEM_SYSRULES_dd_dri"('id': 6, 'decisionInputId': 2, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"120", "210", "122"}))}, 'outputs': {#"SYSTEM_SYSRULES_dd_dro"('id': 3, 'decisionOutputId': 1, 'value': "AP Profuturo DISP ISSSTE V1.0")}), #"SYSTEM_SYSRULES_dd_dr"('id': 4, 'inputs': {#"SYSTEM_SYSRULES_dd_dri"('id': 7, 'decisionInputId': 1, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"97"})), #"SYSTEM_SYSRULES_dd_dri"('id': 8, 'decisionInputId': 2, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"3283", "363", "350"}))}, 'outputs': {#"SYSTEM_SYSRULES_dd_dro"('id': 4, 'decisionOutputId': 1, 'value': "AP Profuturo TRASP FOVISSSTE V1.0")}), #"SYSTEM_SYSRULES_dd_dr"('id': 5, 'inputs': {#"SYSTEM_SYSRULES_dd_dri"('id': 9, 'decisionInputId': 1, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"7"})), #"SYSTEM_SYSRULES_dd_dri"('id': 10, 'decisionInputId': 2, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"131", "132"}))}, 'outputs': {#"SYSTEM_SYSRULES_dd_dro"('id': 5, 'decisionOutputId': 1, 'value': "AP Profuturo REDENCION BONO V1.0")})}, 'isUnique': true, 'defaultOutputs': {#"SYSTEM_SYSRULES_dd_dro"('id': 1, 'decisionOutputId': 1, 'value': "AP Profuturo ")})),#"SYSTEM_SYSRULES_dd_exr"(decisionDefinition:local!decisiondefinition,executionInputs:{#"SYSTEM_SYSRULES_dd_dei"(decisionInputId:1,value:'ri!idProceso'),#"SYSTEM_SYSRULES_dd_dei"(decisionInputId:2,value:'ri!idSubProceso')})))</definition>
+        <namedTypedValue>
+            <name>idProceso</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>idSubProceso</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <preferredEditor>legacy</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+        <inputMetadataList>
+            <inputMetadata>
+                <inputId>1</inputId>
+                <nameRef>idProceso</nameRef>
+                <allowedLabelsExpr></allowedLabelsExpr>
+                <allowedValuesExpr></allowedValuesExpr>
+            </inputMetadata>
+            <inputMetadata>
+                <inputId>2</inputId>
+                <nameRef>idSubProceso</nameRef>
+                <allowedLabelsExpr></allowedLabelsExpr>
+                <allowedValuesExpr></allowedValuesExpr>
+            </inputMetadata>
+        </inputMetadataList>
+        <outputMetadataList>
+            <outputMetadata>
+                <outputId>1</outputId>
+                <nameRef>Snap</nameRef>
+                <typeName>{http://www.appian.com/ae/types/2009}Text</typeName>
+            </outputMetadata>
+        </outputMetadataList>
+        <hitPolicy>UNIQUE</hitPolicy>
+    </decision>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <history>
+        <historyInfo versionUuid="_a-0000ee60-29e2-8000-9bb3-011c48011c48_340939"/>
+        <historyInfo versionUuid="_a-0000ee60-29e2-8000-9bb3-011c48011c48_354352"/>
+        <historyInfo versionUuid="_a-0000ee8d-fa8b-8000-9bbb-011c48011c48_386881"/>
+        <historyInfo versionUuid="_a-0000ee8d-fa8b-8000-9bbb-011c48011c48_394322"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_582417"/>
+    </history>
+</contentHaul>

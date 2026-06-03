@@ -1,0 +1,1230 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000ef47-4270-8000-9bc5-011c48011c48_599739</versionUuid>
+    <interface>
+        <name>PIMF_IdentificaciondeClientes</name>
+        <uuid>_a-0000ec44-2ff4-8000-9ba5-011c48011c48_8215</uuid>
+        <description></description>
+        <parentUuid>_a-0000ec44-2ff4-8000-9ba5-011c48011c48_7493</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>a!localVariables(
+  /*local!dataDetalleIdentificacionClientes: rule!NCI_OPER_ObtieneDetalleClienteNoIdentificados(filterData_map: ri!filterData_map),*/
+  /*local!dataMostrarRegistrosNoIdentificados: rule!NCI_OPER_ObtieneRegistrosNoIdentificados(filterData_map: ri!filterData_map),*/
+  local!showColumn: true,
+  local!showPopWarning: false,
+  local!registersPerPage: 10,
+  local!paginChoices: { 10, 20, 100 },
+  local!vistaRechazoFolio: false,
+  local!vistaReprocesar: false,
+  local!docId_int,
+  local!mensajeRespuesta: "",
+  /*local!docId_int2,*/
+  local!show: false,
+  /*local!show2: false,*/
+  local!vistaRechazarRegistros: false,
+  local!existBitacora: if(
+    a!isNullOrEmpty(ri!request),
+    1,
+    #"SYSTEM_SYSRULES_queryRecordType_v2"(
+      recordType: #"urn:appian:record-type:v1:2e875f37-a45c-4931-b48c-bcbd5e117aba",
+      filters: #"SYSTEM_SYSRULES_queryFilter"(
+        field: #"urn:appian:record-field:v1:2e875f37-a45c-4931-b48c-bcbd5e117aba/c6c64a7e-8d1d-491d-9ed8-b477f1266091",
+        operator: "=",
+        value: tointeger(ri!request.idInstancia)
+      ),
+      pagingInfo: #"SYSTEM_SYSRULES_pagingInfo"(startIndex: 1, batchSize: 1)
+    ).data[#"urn:appian:record-field:v1:2e875f37-a45c-4931-b48c-bcbd5e117aba/c6c64a7e-8d1d-491d-9ed8-b477f1266091"]
+  ),
+  local!AceptBitacora: if(
+    a!isNullOrEmpty(local!existBitacora),
+    true,
+    false
+  ),
+  local!intentoDescarga: false,
+  local!mostrarPopUpDescargable: false,  
+  /*Agregado para  descarga asincrona bloque*/
+  local!consultaDoc:a!refreshVariable(
+    value: if(
+      and(local!intentoDescarga,local!mensajeRespuesta="Incompleto"),
+      #"f74c3fea-f7cf-4af7-8537-3a66751225ec"(
+        folio: index(ri!archivo, "description", "folio", null),
+        /*IMPORTANTE CAMBIAR A LA OPCION DE LA DESCARAGA*/
+        option: 10,
+        idInstancia: index(ri!request, "processInstanceId", null),
+      ),
+      null
+    ),
+    refreshInterval: 0.5
+  ),
+  /*Agregado para  descarga asincrona bloque*/
+  {
+    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+      contents: {
+        #"SYSTEM_SYSRULES_columnsLayout"(
+          columns: {
+            #"SYSTEM_SYSRULES_columnLayout"(),
+            #"SYSTEM_SYSRULES_columnLayout"(
+              contents: {
+                #"SYSTEM_SYSRULES_boxLayout"(
+                  label: "Notificacion",
+                  contents: {
+                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                      labelPosition: "COLLAPSED",
+                      value: {
+                        "Al ",
+                        #"SYSTEM_SYSRULES_richTextItem_v1"(text: { "Aceptar " }, style: { "STRONG" }),
+                        #"_a-0000ee45-8509-8000-9bb1-011c48011c48_327358"
+                      }
+                    ),
+                    #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                      buttons: {
+                        #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                          label: "Aceptar",
+                          saveInto: {
+                            #"SYSTEM_SYSRULES_startProcess"(
+                              processModel: #"_a-0000ee45-8509-8000-9bb1-011c48011c48_325133",
+                              processParameters: {
+                                request: ri!request,
+                                usuarioCreacion: tostring(loggedInUser()),
+                                isBitacora: true
+                              }
+                            ),
+                            a!save(local!AceptBitacora, false)
+                          },
+                          loadingIndicator: true,
+                          submit: false,
+                          style: "SOLID",
+                          size: "SMALL",
+                          color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                        )
+                      },
+                      align: "END"
+                    )
+                  },
+                  style: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350",
+                  
+                )
+              }
+            ),
+            #"SYSTEM_SYSRULES_columnLayout"(),
+            
+          }
+        )
+      },
+      showWhen: local!AceptBitacora
+    ),
+    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+      contents: {
+        #"SYSTEM_SYSRULES_sectionLayout_v1"(
+          contents: {
+            #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_90033"(
+              TituloTexto: "Verificar Clientes No Identificados",
+              showWhen: true
+            ),
+            #"SYSTEM_SYSRULES_columnsLayout"(
+              columns: {
+                #"SYSTEM_SYSRULES_columnLayout"(
+                  contents: {
+                    #"SYSTEM_SYSRULES_sectionLayout_v1"(contents: {}, marginAbove: "EVEN_MORE"),
+                    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                      contents: {
+                        #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_205413"(showWhen: local!showPopWarning),
+                        /*rule!NCI_PantallaDeAviso(*/
+                        /*header_txt:cons!NCI_POOL_MSG_FOR_TASKS_TXT_LIST[1],*/
+                        /*message_txt: cons!NCI_POOL_MSG_FOR_TASKS_TXT_LIST[2],*/
+                        /*showWhen: local!showPopWarning*/
+                        /*)*/
+                        /*Vista Reprocesar   ri!opcion_in: 1*/
+                        #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                          contents: {
+                            #"SYSTEM_SYSRULES_columnsLayout"(
+                              columns: {
+                                #"SYSTEM_SYSRULES_columnLayout"(),
+                                #"SYSTEM_SYSRULES_columnLayout"(
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_boxLayout"(
+                                      label: "Reprocesar",
+                                      contents: {
+                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                          labelPosition: "COLLAPSED",
+                                          value: {
+                                            "¿Confirma el ",
+                                            #"SYSTEM_SYSRULES_richTextItem_v1"(text: { "Reproceso" }, style: { "STRONG" }),
+                                            "?"
+                                          }
+                                        ),
+                                        #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                                          buttons: {
+                                            #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                              label: "Aceptar",
+                                              saveInto: {
+                                                a!save(ri!opcion_in, 1),
+                                                a!save(local!vistaReprocesar, false),
+                                                
+                                              },
+                                              loadingIndicator: true,
+                                              submit: true,
+                                              style: "SOLID",
+                                              size: "SMALL",
+                                              color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                            ),
+                                            #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                              label: "Cancelar",
+                                              size: "SMALL",
+                                              saveInto: { a!save(local!vistaReprocesar, false) },
+                                              style: "OUTLINE",
+                                              color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                            )
+                                          },
+                                          align: "END"
+                                        )
+                                      },
+                                      style: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350",
+                                      
+                                    )
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_columnLayout"(),
+                                
+                              }
+                            )
+                          },
+                          showWhen: local!vistaReprocesar
+                        ),
+                        /*Vista Rechazar Folio ri!opcion_in: 2*/
+                        #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                          contents: {
+                            #"SYSTEM_SYSRULES_columnsLayout"(
+                              columns: {
+                                #"SYSTEM_SYSRULES_columnLayout"(),
+                                #"SYSTEM_SYSRULES_columnLayout"(
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_boxLayout"(
+                                      label: "Rechazar folio",
+                                      contents: {
+                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                          labelPosition: "COLLAPSED",
+                                          value: {
+                                            "¿Confirma ",
+                                            #"SYSTEM_SYSRULES_richTextItem_v1"(text: { "Rechazar" }, style: { "STRONG" }),
+                                            " folio?"
+                                          }
+                                        ),
+                                        #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                                          buttons: {
+                                            #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                              label: "Aceptar",
+                                              saveInto: {
+                                                a!save(ri!opcion_in, 2),
+                                                a!save(local!vistaRechazoFolio, false),
+                                                
+                                              },
+                                              loadingIndicator: true,
+                                              submit: true,
+                                              style: "SOLID",
+                                              size: "SMALL",
+                                              color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                            ),
+                                            #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                              label: "Cancelar",
+                                              saveInto: { a!save(local!vistaRechazoFolio, false) },
+                                              style: "OUTLINE",
+                                              size: "SMALL",
+                                              color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                            )
+                                          },
+                                          align: "END"
+                                        )
+                                      },
+                                      style: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350",
+                                      
+                                    )
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_columnLayout"(),
+                                
+                              }
+                            )
+                          },
+                          showWhen: local!vistaRechazoFolio
+                        ),
+                        /*Vista Rechazar registro ri!opcion_in: 3*/
+                        #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                          contents: {
+                            #"SYSTEM_SYSRULES_columnsLayout"(
+                              columns: {
+                                #"SYSTEM_SYSRULES_columnLayout"(),
+                                #"SYSTEM_SYSRULES_columnLayout"(
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_boxLayout"(
+                                      label: "Rechazar registros",
+                                      contents: {
+                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                          labelPosition: "COLLAPSED",
+                                          value: {
+                                            "¿Confirma ",
+                                            #"SYSTEM_SYSRULES_richTextItem_v1"(text: { "Rechazar" }, style: { "STRONG" }),
+                                            " los registros?"
+                                          }
+                                        ),
+                                        #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                                          buttons: {
+                                            #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                              label: "Aceptar",
+                                              saveInto: {
+                                                a!save(ri!opcion_in, 3),
+                                                a!save(local!vistaRechazarRegistros, false),
+                                                
+                                              },
+                                              loadingIndicator: true,
+                                              submit: true,
+                                              style: "SOLID",
+                                              size: "SMALL",
+                                              color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                            ),
+                                            #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                              label: "Cancelar",
+                                              saveInto: {
+                                                a!save(local!vistaRechazarRegistros, false)
+                                              },
+                                              style: "OUTLINE",
+                                              size: "SMALL",
+                                              color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                            )
+                                          },
+                                          align: "END"
+                                        )
+                                      },
+                                      style: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350",
+                                      
+                                    )
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_columnLayout"(),
+                                
+                              }
+                            )
+                          },
+                          showWhen: local!vistaRechazarRegistros
+                        ),
+                        
+                      }
+                    )
+                  },
+                  showWhen: or(
+                    local!showPopWarning,
+                    local!vistaRechazarRegistros,
+                    local!vistaRechazoFolio,
+                    local!vistaReprocesar,
+                    
+                  )
+                ),
+                #"SYSTEM_SYSRULES_columnLayout"(
+                  contents: {
+                    /*Sección para descargable de documento */
+                    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                      contents: {
+                        #"SYSTEM_SYSRULES_columnsLayout"(
+                          columns: {
+                            #"SYSTEM_SYSRULES_columnLayout"(),
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              contents: {
+                                #"SYSTEM_SYSRULES_boxLayout"(
+                                  label: "Descargar documento",
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                      labelPosition: "COLLAPSED",
+                                      value: {
+                                        "Para descargar el documento presione el siguiente ",
+                                        #"SYSTEM_SYSRULES_richTextItem_v1"(text: { "Icono" }, style: { "STRONG" }),
+                                        ""
+                                      }
+                                    ),
+                                    #"SYSTEM_SYSRULES_cardLayout"(
+                                      contents: {
+                                        if(
+                                          a!isNotNullOrEmpty(local!docId_int),
+                                          #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                            value: {
+                                              #"SYSTEM_SYSRULES_richTextIcon"(
+                                                icon: "file-download",
+                                                caption: "Descargar excel",
+                                                color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                                size: "LARGE_PLUS",
+                                                link: #"SYSTEM_SYSRULES_documentDownloadLink"(
+                                                  label: "Document Link",
+                                                  document: local!docId_int
+                                                )
+                                              )
+                                            },
+                                            align: "CENTER"
+                                          ),
+                                          #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                            value: "No fue posible consultar el documento. Intente nuevamente o contacte al área de Servicios.",
+                                            align: "CENTER"
+                                          )
+                                        ),
+                                        
+                                      },
+                                      padding: "EVEN_LESS",
+                                      marginBelow: "STANDARD",
+                                      showShadow: false,
+                                      showBorder: true,
+                                      borderColor: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                      
+                                    ),
+                                    #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                                      buttons: {
+                                        #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                          label: "Cerrar",
+                                          saveInto: {
+                                            a!save(local!mostrarPopUpDescargable, false)
+                                          },
+                                          style: "OUTLINE",
+                                          color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                        )
+                                      },
+                                      align: "END"
+                                    )
+                                  },
+                                  style: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350"
+                                )
+                              }
+                            ),
+                            #"SYSTEM_SYSRULES_columnLayout"()
+                          },
+                          marginAbove: "EVEN_MORE"
+                        )
+                      },
+                      
+                    ),
+                    
+                  },
+                  showWhen: and(
+                    not(local!showPopWarning),
+                    not(local!vistaRechazarRegistros),
+                    not(local!vistaRechazoFolio),
+                    not(local!vistaReprocesar),
+                    local!mostrarPopUpDescargable
+                  )
+                ),
+                #"SYSTEM_SYSRULES_columnLayout"(
+                  contents: {
+                    #"SYSTEM_SYSRULES_boxLayout"(
+                      label: "Mostrar Clientes No Identificados",
+                      contents: {
+                        #"SYSTEM_SYSRULES_cardLayout"(
+                          contents: #"SYSTEM_SYSRULES_columnsLayout"(
+                            columns: {
+                              #"SYSTEM_SYSRULES_columnLayout"(
+                                contents: {
+                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                    labelPosition: "COLLAPSED",
+                                    value: {
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(text: "Folio: ", style: "STRONG"),
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(text: index(ri!archivo, "folio", ""))
+                                    }
+                                  ),
+                                  /* Folio */
+                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                    labelPosition: "COLLAPSED",
+                                    value: {
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(text: "Nombre: ", style: "STRONG"),
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(text: index(ri!archivo, "nombre", ""))
+                                    }
+                                  ),
+                                  /* Nombre */
+                                  
+                                }
+                              ),
+                              #"SYSTEM_SYSRULES_columnLayout"(
+                                contents: {
+                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                    labelPosition: "COLLAPSED",
+                                    value: {
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(text: "Proceso: ", style: "STRONG"),
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: index(ri!archivo, "proceso", "descripcion", "")
+                                      )
+                                    }
+                                  ),
+                                  /* proceso */
+                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                    labelPosition: "COLLAPSED",
+                                    value: {
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(text: "Subproceso: ", style: "STRONG"),
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: index(
+                                          ri!archivo,
+                                          "subproceso",
+                                          "descripcion",
+                                          ""
+                                        )
+                                      )
+                                    }
+                                  ),
+                                  /* Subproceso */
+                                  
+                                }
+                              ),
+                              #"SYSTEM_SYSRULES_columnLayout"(
+                                contents: {
+                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                    labelPosition: "COLLAPSED",
+                                    value: {
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(text: "Estatus: ", style: "STRONG"),
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(text: "EN EJECUCIÓN")
+                                    }
+                                  ),
+                                  /* Estatus */#"SYSTEM_SYSRULES_richTextDisplayField"(
+                                    labelPosition: "COLLAPSED",
+                                    value: {
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: "Fecha  Recepción: ",
+                                        style: "STRONG"
+                                      ),
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: text(
+                                          tostring(index(ri!archivo, "fechaRecepcion", "")),
+                                          "dd/MM/yyyy"
+                                        ),
+                                        style: "PLAIN",
+                                        color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                      )
+                                    }
+                                  ),
+                                  /* Fecha Recepción */
+                                  
+                                }
+                              ),
+                              #"SYSTEM_SYSRULES_columnLayout"(
+                                contents: {
+                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                    labelPosition: "COLLAPSED",
+                                    value: {
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: "Fecha  último Estatus:  ",
+                                        style: "STRONG"
+                                      ),
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: text(
+                                          tostring(
+                                            index(ri!archivo, "fechaUltimoEStatus", "")
+                                          ),
+                                          "dd/MM/yyyy"
+                                        ),
+                                        style: "PLAIN",
+                                        color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                      )
+                                    }
+                                  )/* Fecha último Estatus*/
+                                  
+                                }
+                              ),
+                              
+                            }
+                          ),
+                          showBorder: true,
+                          shape: "ROUNDED"
+                        ),
+                        
+                      },
+                      style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                      showBorder: false
+                    ),
+                    #"SYSTEM_SYSRULES_boxLayout"(
+                      label: "Detalle de la Operación Identificación de Clientes",
+                      contents: {
+                        #"SYSTEM_SYSRULES_columnsLayout"(
+                          columns: {
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              contents: {
+                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                  labelPosition: "COLLAPSED",
+                                  value: {
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                      color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                      text: { "Total de Clientes por Archivo:" },
+                                      style: { "STRONG" }
+                                    )
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                  labelPosition: "COLLAPSED",
+                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                    color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                    text: index(
+                                      ri!dataDetalleIdentificacionClientes,
+                                      "customersByFile",
+                                      null
+                                    ),
+                                    
+                                  )
+                                )
+                              }
+                            ),
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              contents: {
+                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                  labelPosition: "COLLAPSED",
+                                  value: {
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                      color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                      text: { "Clientes Identificados:" },
+                                      style: { "STRONG" }
+                                    )
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                  labelPosition: "COLLAPSED",
+                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                    color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                    text: index(
+                                      ri!dataDetalleIdentificacionClientes,
+                                      "customersIdentified",
+                                      null
+                                    ),
+                                    
+                                  )
+                                )
+                              }
+                            ),
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              contents: {
+                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                  labelPosition: "COLLAPSED",
+                                  value: {
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                      color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                      text: { "Clientes No Identificados:" },
+                                      style: { "STRONG" }
+                                    )
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                  labelPosition: "COLLAPSED",
+                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                    color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                    text: index(
+                                      ri!dataDetalleIdentificacionClientes,
+                                      "customersNonIdentified",
+                                      null
+                                    ),
+                                    
+                                  )
+                                )
+                              }
+                            )
+                          },
+                          marginAbove: "EVEN_LESS"
+                        )
+                      },
+                      style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                      showBorder: false
+                    ),
+                    #"SYSTEM_SYSRULES_boxLayout"(
+                      label: "Registros No Identificados",
+                      contents: {
+                        #"SYSTEM_SYSRULES_gridField_v2"(
+                          label: "",
+                          labelPosition: "ABOVE",
+                          data: ri!dataMostrarRegistrosNoIdentificados,
+                          columns: {
+                            #"SYSTEM_SYSRULES_gridColumn"(
+                              label: "NSS",
+                              value: #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                  color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                  text: index(fv!row, "nss", null),
+                                  
+                                )
+                              ),
+                              backgroundColor: "NONE",
+                              sortField: "nss"
+                            ),
+                            #"SYSTEM_SYSRULES_gridColumn"(
+                              label: "CURP",
+                              value: #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                  color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                  text: index(fv!row, "curp", null)
+                                )
+                              ),
+                              sortField: "curp"
+                            ),
+                            #"SYSTEM_SYSRULES_gridColumn"(
+                              label: "Cuenta",
+                              value: #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                  color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                  text: index(fv!row, "accountNumber", null)
+                                )
+                              ),
+                              sortField: "accountNumber"
+                            ),
+                            #"SYSTEM_SYSRULES_gridColumn"(
+                              label: "Nombre completo",
+                              value: #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                  color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                  text: index(fv!row, "fullName", null)
+                                )
+                              ),
+                              sortField: "fullName"
+                            ),
+                            #"SYSTEM_SYSRULES_gridColumn"(
+                              label: "Diagnóstico",
+                              value: #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                  color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                  text: index(fv!row, "diagnostic", null)
+                                )
+                              ),
+                              sortField: "diagnostic"
+                            ),
+                            #"SYSTEM_SYSRULES_gridColumn"(
+                              label: "Subproceso de no Vigencia",
+                              value: #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                  color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                  text: index(
+                                    fv!row,
+                                    "NonValiditySubprocessDescription",
+                                    null
+                                  )
+                                )
+                              ),
+                              sortField: "NonValiditySubprocessDescription"
+                            ),
+                            #"SYSTEM_SYSRULES_gridColumn"(
+                              label: "Fecha Certificación",
+                              value: #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                  color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                  text: if(
+                                    a!isNotNullOrEmpty(index(fv!row, "certificationDate", "")),
+                                    text(
+                                      addhours(index(fv!row, "certificationDate", ""), 6),
+                                      "dd-mm-yyyy"
+                                    ),
+                                    ""
+                                  )
+                                )
+                              ),
+                              sortField: "certificationDate"
+                            )
+                          },
+                          pageSize: local!registersPerPage,
+                          selectable: false,
+                          validations: {},
+                          borderStyle: "STANDARD"
+                        ),
+                        #"SYSTEM_SYSRULES_sideBySideLayout"(
+                          marginAbove: "NONE",
+                          items: {
+                            #"SYSTEM_SYSRULES_sideBySideItem"(),
+                            #"SYSTEM_SYSRULES_sideBySideItem"(
+                              width: "MINIMIZE",
+                              item: #"_a-0000ed69-baa7-8000-9bad-011c48011c48_271425"(
+                                paginChoices_list: local!paginChoices,
+                                gridDataLength_int: length(
+                                  if(
+                                    a!isNotNullOrEmpty(ri!dataMostrarRegistrosNoIdentificados),
+                                    ri!dataMostrarRegistrosNoIdentificados,
+                                    {}
+                                  )/*index(*/
+                                  /*ri!dataMostrarRegistrosNoIdentificados,*/
+                                  /*{}*/
+                                  /*)*/
+                                  
+                                ),
+                                recordsPerPage_int: local!registersPerPage
+                              )/*a!dropdownField(
+                          choiceLabels: {10, 20, 100, "TODOS"},
+                          choiceValues: {10, 20, 100, length(index(local!dataMostrarRegistrosNoIdentificados, {}))+1},
+                          value: local!registersPerPage,
+                          saveInto: local!registersPerPage,
+                          placeholder: "-- Registros --"
+                        )*/
+                              
+                            ),
+                            #"SYSTEM_SYSRULES_sideBySideItem"(),
+                            
+                          }
+                        )
+                      },
+                      style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                      showBorder: false
+                    ),
+                    /*opcion 3 section ó box*/
+                    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                      label: "",
+                      contents: {
+                        /*Agregado para  descarga asincrona bloque*/
+                        #"d8c51b1b-47f4-494a-a360-e31b8c316406"(
+                          docId_int: local!docId_int,
+                          /*IMPORTANTE CAMBIAR A COMO ESTABA EN LA DESCARAGA*/
+                          nombre:  if(
+                            a!isNotNullOrEmpty(local!docId_int),
+                            concat(
+                              document(local!docId_int, "name"),
+                              ".",
+                              document(local!docId_int, "extension")
+                            ),
+                            ""
+                          ),
+                          mensajeRespuesta: local!mensajeRespuesta,
+                          intentoDescarga: local!intentoDescarga,
+                          consultaDoc: local!consultaDoc
+                        ),
+                        /*Agregado para  descarga asincrona bloque*/
+                        
+                        #"SYSTEM_SYSRULES_columnsLayout"(
+                          columns: {
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              contents: {
+                                #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                                  buttons: {
+                                    #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                      label: "Reprocesar",
+                                      style: "SOLID",
+                                      saveInto: a!save(local!vistaReprocesar, true),
+                                      color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                      size: "SMALL"
+                                    ),
+                                    #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                      label: "Rechazar folio",
+                                      submit: false,
+                                      style: "SOLID",
+                                      saveInto: a!save(local!vistaRechazoFolio, true),
+                                      color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_34909",
+                                      size: "SMALL"
+                                    ),
+                                    #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                      label: "Rechazar Registros",
+                                      style: "SOLID",
+                                      saveInto: a!save(local!vistaRechazarRegistros, true),
+                                      color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_34909",
+                                      disabled: if(
+                                        or(
+                                          ri!archivo.subproceso.id = 118,
+                                          ri!archivo.subproceso.id = 120,
+                                          ri!archivo.subproceso.id = 122
+                                        ),
+                                        false,
+                                        true
+                                      ),
+                                      size: "SMALL"
+                                    ),  
+                                    #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                      /*Agregado para  descarga asincrona*/
+                                      label: if(and(local!intentoDescarga,local!mensajeRespuesta="Incompleto"),if(a!isNullOrEmpty(local!consultaDoc),"Descargando Excel","Documento Disponible"),"Exportar Excel"),
+                                      /*Agregado para  descarga asincrona*/
+                                      icon: if(and(local!intentoDescarga,local!mensajeRespuesta="Incompleto"),if(a!isNullOrEmpty(local!consultaDoc),"spinner-alt","file-export"),null),
+                                      value: true,
+                                      saveInto: {
+                                        #"SYSTEM_SYSRULES_startProcess3"(
+                                          processModel: #"_a-0000ee45-8509-8000-9bb1-011c48011c48_330655",
+                                          processParameters: {
+                                            /*                 Cambio de mejora                           */
+                                            user: loggedInUser(),
+                                            inputService: a!map(
+                                              folio: concat(
+                                                ri!archivo.folio,
+                                                "_Identificacion_Cliente.csv"
+                                              ),
+                                              path: #"f9e2991e-c174-4cf9-9f3b-15d836673d13"(
+                                                idProceso: ri!archivo.proceso.id,
+                                                idSubProceso: ri!archivo.subproceso.id
+                                              )
+                                            ),
+                                            option: 1
+                                          },
+                                          isSynchronous: true,
+                                          onSuccess: {
+                                            a!save(
+                                              local!docId_int,
+                                              index(fv!processInfo.pv, "document", null)
+                                            ),
+                                            a!save(
+                                              local!mensajeRespuesta,
+                                              index(fv!processInfo.pv, "mensajeRespuesta", null),
+                                            )
+                                          },
+                                          /*Agregado para  descarga asincrona bloque*/
+                                          onIncomplete: {
+
+                                            a!save(
+                                              local!mensajeRespuesta,
+                                              "Incompleto",
+
+                                            )
+                                          }
+                                          /*Agregado para  descarga asincrona bloque*/
+                                        ),
+                                        a!save(local!show, true),
+                                        a!save(local!intentoDescarga, true),
+
+                                      },
+                                      style: "SOLID",
+                                      color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_34909",
+                                      size: "SMALL",
+                                      submit: false,
+                                      showWhen: true,
+                                      loadingIndicator: true,
+                                      /*Agregado para  descarga asincrona*/
+                                      disabled: if(and(local!intentoDescarga,local!mensajeRespuesta="Incompleto"),true,false),
+                                    ),  
+                                    #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                      label: "CERRAR",
+                                      style: "OUTLINE",
+                                      color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                      saveInto: {
+                                        #"SYSTEM_SYSRULES_startProcess"(
+                                          processModel: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_205077",
+                                          processParameters: { taskId: ri!taskId }
+                                        ),
+                                        a!save(local!showPopWarning, true)
+                                      },
+                                      size: "SMALL"
+                                    )
+                                  },
+                                  showWhen: true,
+                                  align: "START",
+                                  marginBelow: "NONE",
+                                  marginAbove: "MORE"
+                                )
+                              },
+                              width: "6X"
+                            )
+                          },
+                          spacing: "NONE"
+                        )
+                      },
+                      /*style: cons!NCI_Color_Azul_Medio_Text,*/
+                      /*marginBelow: "STANDARD"*/
+                      
+                    ),
+                    
+                  },
+                  showWhen: and(
+                    not(local!showPopWarning),
+                    not(local!vistaRechazarRegistros),
+                    not(local!vistaRechazoFolio),
+                    not(local!vistaReprocesar),
+                    not(local!mostrarPopUpDescargable)
+                  ),
+                  width: "9X"
+                ),
+                #"SYSTEM_SYSRULES_columnLayout"(
+                  contents: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_69718"(
+                    folio: ri!folio,
+                    archivo: ri!archivo,
+                    startTime: ri!startTime
+                  ),
+                  width: "MEDIUM",
+                  showWhen: true
+                )
+              }
+            )
+          }
+        ),
+        
+      },
+      showWhen: not(local!AceptBitacora)
+    ),
+    
+  }
+)</definition>
+        <namedTypedValue>
+            <name>filterData_map</name>
+            <type>
+                <name>Map</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>opcion_in</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>folio</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>archivo</name>
+            <type>
+                <name>PIMF_ARCHIVO_OB</name>
+                <namespace>urn:com:appian:types:PIMF</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>startTime</name>
+            <type>
+                <name>dateTime</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>taskId</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>docId_int</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>request</name>
+            <type>
+                <name>PIMF_FLUJO_SERVICIOS</name>
+                <namespace>urn:com:appian:types:PIMF</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>dataDetalleIdentificacionClientes</name>
+            <type>
+                <name>Map?list</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>dataMostrarRegistrosNoIdentificados</name>
+            <type>
+                <name>Map?list</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <preferredEditor>interface</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+        <isCustom>false</isCustom>
+    </interface>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <typedValue>
+        <type>
+            <name>RuleTestConfig?list</name>
+            <namespace>http://www.appian.com/ae/types/2009</namespace>
+        </type>
+        <value>
+            <el>
+                <a:name/>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">a!map(
+  folio: "202411281716539241",
+  fileId: 63937
+)</a:value>
+                    <a:nameRef>filterData_map</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" xsi:type="xsd:int"/>
+                    <a:nameRef>opcion_in</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string">202411281716539241</a:value>
+                    <a:nameRef>folio</a:nameRef>
+                    <a:id>3</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">'type!{urn:com:appian:types:PIMF}PIMF_ARCHIVO_OB'(
+  identificador: 76162,
+  folio: "202510281615576585",
+  folioSubsecuente: "",
+  nombre: "PTCFT.DP.A01534.S250704.PORTATRA.C100.DAT",
+  estatus: {
+    identificador: "",
+    valor: "",
+    descripcion: "REGISTRADO",
+    tipoCatalogo: "",
+    id: 1
+  },
+  tamanio: 6510,
+  proceso: {
+    identificador: "",
+    valor: "",
+    descripcion: "TRASPASO",
+    tipoCatalogo: "",
+    id: 97
+  },
+  subproceso: {
+    identificador: "",
+    valor: "",
+    descripcion: "TRANSFERENCIA DE RECURSOS POR PORTABILIDAD",
+    tipoCatalogo: "",
+    id: 3286
+  },
+  fechaArchivo: todatetime("2025-07-04T00:00:00Z"),
+  fechaRecepcion: now(),
+  fechaUltimoEstatus: "11/4/2025 7:54 PM",
+  fechaEnvio: todatetime("2025-10-28T15:36:00Z"),
+  fechaLiquidacion: null,
+  emailUsuario: "",
+  nombreArchSinExtension: "PTCFT.DP.A01534.S250704.PORTATRA.C100",
+  rutaDescargaArchivo: "",
+  usuarioCreacion: "MIT_SERVICES",
+  fechaCreacion: null,
+  usuarioActualizacion: "MIT_SERVICES",
+  fechaActualizacion: todatetime("2025-10-28T15:52:00Z"),
+  valorAivSub: "",
+  origenDetalle: "",
+  origen: {
+    identificador: "",
+    valor: "",
+    descripcion: "",
+    tipoCatalogo: "",
+    id: 0
+  },
+  idOrigenDetalle: 0
+)</a:value>
+                    <a:nameRef>archivo</a:nameRef>
+                    <a:id>4</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">now()</a:value>
+                    <a:nameRef>startTime</a:nameRef>
+                    <a:id>5</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" xsi:type="xsd:int"/>
+                    <a:nameRef>taskId</a:nameRef>
+                    <a:id>6</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" xsi:type="xsd:int"/>
+                    <a:nameRef>docId_int</a:nameRef>
+                    <a:id>7</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">'type!{urn:com:appian:types:PIMF}PIMF_FLUJO_SERVICIOS'(
+  folio: "202411281716539241",
+  idInstancia: 654654,
+  idEtapa: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_13633",
+  idResultado: 0,
+  idEstatus: 32,
+  idSubetapa: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_13878",
+  idSubproceso: 120,
+  usuario: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_18089"().user
+)</a:value>
+                    <a:nameRef>request</a:nameRef>
+                    <a:id>8</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>dataDetalleIdentificacionClientes</a:nameRef>
+                    <a:id>9</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>dataMostrarRegistrosNoIdentificados</a:nameRef>
+                    <a:id>10</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+            </el>
+        </value>
+    </typedValue>
+    <history>
+        <historyInfo versionUuid="_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10531"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_35341"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_60710"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_71032"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_71250"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_72687"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_75111"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_82258"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_84067"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_85497"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_88235"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_88403"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_88567"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_90355"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_140200"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_192972"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_197937"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_205784"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_208124"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_239492"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_240714"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_257239"/>
+        <historyInfo versionUuid="_a-0000ed5f-8811-8000-9bac-011c48011c48_261900"/>
+        <historyInfo versionUuid="_a-0000ed5f-8811-8000-9bac-011c48011c48_262113"/>
+        <historyInfo versionUuid="_a-0000ed69-baa7-8000-9bad-011c48011c48_265623"/>
+        <historyInfo versionUuid="_a-0000ed69-baa7-8000-9bad-011c48011c48_271728"/>
+        <historyInfo versionUuid="_a-0000ed69-baa7-8000-9bad-011c48011c48_277670"/>
+        <historyInfo versionUuid="_a-0000ed69-baa7-8000-9bad-011c48011c48_277912"/>
+        <historyInfo versionUuid="_a-0000ed69-baa7-8000-9bad-011c48011c48_278096"/>
+        <historyInfo versionUuid="_a-0000ed69-baa7-8000-9bad-011c48011c48_279357"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_291618"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_296860"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_320733"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_321896"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_322131"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_324172"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_324375"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_325345"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_328557"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_329188"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_329793"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_338087"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_338895"/>
+        <historyInfo versionUuid="_a-0000ee60-29e2-8000-9bb3-011c48011c48_344158"/>
+        <historyInfo versionUuid="_a-0000ee77-5807-8000-9bb7-011c48011c48_370986"/>
+        <historyInfo versionUuid="_a-0000ee8d-fa8b-8000-9bbb-011c48011c48_402593"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_425425"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_425558"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_425559"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_426355"/>
+        <historyInfo versionUuid="_a-0000eeff-85fb-8000-9bc1-011c48011c48_493975"/>
+        <historyInfo versionUuid="_a-0000eeff-85fb-8000-9bc1-011c48011c48_501115"/>
+        <historyInfo versionUuid="_a-0000ef3e-0841-8000-9bc3-011c48011c48_507418"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_525049"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_551416"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_599739"/>
+    </history>
+</contentHaul>

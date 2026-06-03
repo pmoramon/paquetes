@@ -1,0 +1,2862 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000ef47-4270-8000-9bc5-011c48011c48_600668</versionUuid>
+    <interface>
+        <name>NCI_OPER_ConfirmaciónDeMovimientosPrevios</name>
+        <uuid>_a-0000ec60-cceb-8000-9ba6-011c48011c48_22195</uuid>
+        <description></description>
+        <parentUuid>_a-0000ec44-2ff4-8000-9ba5-011c48011c48_7493</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>a!localVariables(
+  local!showWhen: false,
+  local!showWhenRecal: false,
+  local!showComentarios: false,
+  local!showPopWarning: false,
+  local!showColumn: true,
+  local!vistaConformarMovimientos: false,
+  local!vistaRechazarMovimientos: false,
+  local!vistaHistorialComentarios: false,
+  local!vistaActualizar: false,
+  local!vistaCerrar: false,
+  local!document,
+  local!timerDocViewer,
+  local!viewer: false,
+  local!showDocViewer: a!refreshVariable(
+    value: if(
+      a!isNotNullOrEmpty(local!timerDocViewer),
+      if(
+        now() &gt;= local!timerDocViewer,
+        false,
+        local!viewer
+      ),
+      local!viewer
+    ),
+    refreshAlways: local!viewer
+  ),
+  local!popUp_Recalcular: false,
+  local!docId_int,
+  local!intentoDescarga: false,
+  local!mensajeRespuesta: "",
+  local!show: false,
+  local!existBitacora: if(
+    a!isNullOrEmpty(ri!request),
+    1,
+    #"SYSTEM_SYSRULES_queryRecordType_v2"(
+      recordType: #"urn:appian:record-type:v1:2e875f37-a45c-4931-b48c-bcbd5e117aba",
+      filters: #"SYSTEM_SYSRULES_queryFilter"(
+        field: #"urn:appian:record-field:v1:2e875f37-a45c-4931-b48c-bcbd5e117aba/c6c64a7e-8d1d-491d-9ed8-b477f1266091",
+        operator: "=",
+        value: tointeger(ri!request.idInstancia)
+      ),
+      pagingInfo: #"SYSTEM_SYSRULES_pagingInfo"(startIndex: 1, batchSize: 1)
+    ).data[#"urn:appian:record-field:v1:2e875f37-a45c-4931-b48c-bcbd5e117aba/c6c64a7e-8d1d-491d-9ed8-b477f1266091"]
+  ),
+  local!AceptBitacora: if(
+    a!isNullOrEmpty(local!existBitacora),
+    true,
+    false
+  ),
+  local!showExport: false,
+  /*Agregado para  descarga asincrona bloque*/
+  local!consultaDoc:a!refreshVariable(
+    value: if(
+      and(local!intentoDescarga,local!mensajeRespuesta="Incompleto"),
+      #"f74c3fea-f7cf-4af7-8537-3a66751225ec"(
+        folio: ri!archivo.folio,
+        /*IMPORTANTE CAMBIAR A LA OPCION DE LA DESCARAGA*/
+        option: 9,
+        idInstancia: index(ri!request,"idInstancia",null),
+      ),
+      null
+    ),
+    refreshInterval: 0.5
+  ),
+  /*Agregado para  descarga asincrona bloque*/
+  {
+    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+      contents: {
+        #"SYSTEM_SYSRULES_columnsLayout"(
+          columns: {
+            #"SYSTEM_SYSRULES_columnLayout"(),
+            #"SYSTEM_SYSRULES_columnLayout"(
+              contents: {
+                #"SYSTEM_SYSRULES_boxLayout"(
+                  label: "Notificacion",
+                  contents: {
+                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                      labelPosition: "COLLAPSED",
+                      value: {
+                        "Al ",
+                        #"SYSTEM_SYSRULES_richTextItem_v1"(text: { "Aceptar " }, style: { "STRONG" }),
+                        #"_a-0000ee45-8509-8000-9bb1-011c48011c48_327358"
+                      }
+                    ),
+                    #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                      buttons: {
+                        #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                          label: "Aceptar",
+                          saveInto: {
+                            #"SYSTEM_SYSRULES_startProcess"(
+                              processModel: #"_a-0000ee45-8509-8000-9bb1-011c48011c48_325133",
+                              processParameters: {
+                                request: ri!request,
+                                usuarioCreacion: tostring(loggedInUser()),
+                                isBitacora: true
+                              }
+                            ),
+                            a!save(local!AceptBitacora, false)
+                          },
+                          loadingIndicator: true,
+                          submit: false,
+                          style: "SOLID",
+                          size: "SMALL",
+                          color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                        )
+                      },
+                      align: "END"
+                    )
+                  },
+                  style: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350",
+
+                )
+              }
+            ),
+            #"SYSTEM_SYSRULES_columnLayout"(),
+
+          }
+        )
+      },
+      showWhen: local!AceptBitacora
+    ),
+    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+      contents: {
+        #"SYSTEM_SYSRULES_sectionLayout_v1"(
+          contents: {
+            #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_90033"(
+              TituloTexto: "Confirmación de Movimientos Previos",
+              showWhen: local!showColumn
+            ),
+
+          },
+          marginBelow: "NONE",
+          /*showWhen: and(*/
+          /*not(local!showWhen),*/
+          /*not(local!showComentarios),*/
+          /*not(local!showWhenRecal),*/
+          /*not(local!showPopWarning),*/
+          /*not(local!vistaConformarMovimientos),*/
+          /*not(local!vistaRechazarMovimientos),*/
+          /*not(local!vistaHistorialComentarios),*/
+          /*not(local!vistaActualizar),*/
+          /*not(local!vistaCerrar),*/
+          /*not(local!popUp_Recalcular)*/
+          /*),*/
+
+        ),
+        #"SYSTEM_SYSRULES_columnsLayout"(
+          columns: {
+            #"SYSTEM_SYSRULES_columnLayout"(
+              contents: {
+                #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                  marginAbove: "EVEN_MORE",
+                  marginBelow: "EVEN_MORE",
+                  showWhen: not(local!showComentarios)
+                ),
+                #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                  contents: {
+                    #"_a-0000eccb-293d-8000-9ba8-011c48011c48_113206"(
+                      showWhen: local!showWhenRecal,
+                      fechaGenMovs: ri!fechaGenMovs,
+                      valorAccion: ri!valorAccion,
+                      valorAccionNueva: ri!valorAccionNueva,
+                      subproceso_int: ri!archivo.subproceso.id
+                    ),
+                    #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_85287"(
+                      comentarios_txt: ri!comentarios_txt,
+                      showWhen: local!showWhen
+                    ),
+                    #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_22208"(
+                      archivo: ri!archivo,
+                      showWhen: local!showComentarios
+                    ),
+                    #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_205413"(showWhen: local!showPopWarning),
+                    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                      contents: {
+                        #"SYSTEM_SYSRULES_columnsLayout"(
+                          columns: {
+                            #"SYSTEM_SYSRULES_columnLayout"(),
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              contents: {
+                                #"SYSTEM_SYSRULES_boxLayout"(
+                                  label: "Confirmación de Movimientos Previos",
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                      labelPosition: "COLLAPSED",
+                                      value: {
+                                        "¿",
+                                        #"SYSTEM_SYSRULES_richTextItem_v1"(text: { "Confirma" }, style: { "STRONG" }),
+                                        " Movimientos?"
+                                      }
+                                    ),
+                                    #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                                      buttons: {
+                                        #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                          label: "Aceptar",
+                                          saveInto: {
+                                            a!save(ri!option, 1),
+                                            a!save(ri!validation, true),
+                                            a!save(local!vistaConformarMovimientos, false),
+
+                                          },
+                                          submit: true,
+                                          style: "SOLID",
+                                          color: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_7886"
+                                        ),
+                                        #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                          label: "Cancelar",
+                                          saveInto: {
+                                            a!save(local!vistaConformarMovimientos, false)
+                                          },
+                                          style: "OUTLINE",
+                                          color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                        )
+                                      },
+                                      align: "END"
+                                    )
+                                  },
+                                  style: "#D1DFEA",
+
+                                )
+                              }
+                            ),
+                            #"SYSTEM_SYSRULES_columnLayout"(),
+
+                          }
+                        )
+                      },
+                      showWhen: local!vistaConformarMovimientos
+                    ),
+                    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                      contents: {
+                        #"SYSTEM_SYSRULES_columnsLayout"(
+                          columns: {
+                            #"SYSTEM_SYSRULES_columnLayout"(),
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              contents: {
+                                #"SYSTEM_SYSRULES_boxLayout"(
+                                  label: "Confirmación de Movimientos Previos",
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                      labelPosition: "COLLAPSED",
+                                      value: {
+                                        "¿",
+                                        #"SYSTEM_SYSRULES_richTextItem_v1"(text: { "Rechazar" }, style: { "STRONG" }),
+                                        " el Movimiento?"
+                                      }
+                                    ),
+                                    #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                                      buttons: {
+                                        #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                          label: "Aceptar",
+                                          saveInto: {
+                                            a!save(ri!option, 2),
+                                            a!save(local!showWhen, true),
+                                            a!save(ri!validation, false),
+                                            a!save(local!vistaRechazarMovimientos, false),
+
+                                          },
+                                          submit: true,
+                                          style: "SOLID",
+                                          color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                        ),
+                                        #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                          label: "Cancelar",
+                                          saveInto: {
+                                            a!save(local!vistaRechazarMovimientos, false)
+                                          },
+                                          style: "OUTLINE",
+                                          color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                        )
+                                      },
+                                      align: "END"
+                                    )
+                                  },
+                                  style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+
+                                )
+                              }
+                            ),
+                            #"SYSTEM_SYSRULES_columnLayout"(),
+
+                          }
+                        )
+                      },
+                      showWhen: local!vistaRechazarMovimientos
+                    ),
+                    /*a!sectionLayout(*/
+                    /*contents: {*/
+                    /*a!columnsLayout(*/
+                    /*columns: {*/
+                    /*a!columnLayout(),*/
+                    /*a!columnLayout(*/
+                    /*contents: {*/
+                    /*a!boxLayout(*/
+                    /*label: "Confirmación de Movimientos Previos",*/
+                    /*contents: {*/
+                    /*a!richTextDisplayField(*/
+                    /*labelPosition: "COLLAPSED",*/
+                    /*value: {*/
+                    /*"¿",*/
+                    /*a!richTextItem(text: { "Mostrar" }, style: { "STRONG" }),*/
+                    /*" el Historial?"*/
+                    /*}*/
+                    /*),*/
+                    /*a!buttonArrayLayout(*/
+                    /*buttons: {*/
+                    /*a!buttonWidget(*/
+                    /*label: "Aceptar",*/
+                    /*saveInto: {*/
+                    /*a!save(ri!option, 4),*/
+                    /*a!save(local!showComentarios, true),*/
+                    /*a!save(local!vistaHistorialComentarios, false),*/
+                    /*},*/
+                    /*submit: true,*/
+                    /*style: "SOLID",*/
+                    /*color: cons!NCI_Cons_COLOR_AZUL_CLARO*/
+                    /*),*/
+                    /*a!buttonWidget(*/
+                    /*label: "Cancelar",*/
+                    /*saveInto: { a!save(local!vistaHistorialComentarios, false) },*/
+                    /*style: "OUTLINE",*/
+                    /*color: cons!NCI_Cons_COLOR_AZUL_CLARO*/
+                    /*)*/
+                    /*},*/
+                    /*align: "END"*/
+                    /*)*/
+                    /*},*/
+                    /*style: cons!NCI_Cons_COLOR_AZUL_CLARO,*/
+                    /**/
+                    /*)*/
+                    /*}*/
+                    /*),*/
+                    /*a!columnLayout(),*/
+                    /**/
+                    /*}*/
+                    /*)*/
+                    /*},*/
+                    /*showWhen: local!vistaHistorialComentarios*/
+                    /*),*/
+                    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                      contents: {
+                        #"SYSTEM_SYSRULES_columnsLayout"(
+                          columns: {
+                            #"SYSTEM_SYSRULES_columnLayout"(),
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              contents: {
+                                #"SYSTEM_SYSRULES_boxLayout"(
+                                  label: "Confirmación de Movimientos Previos",
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                      labelPosition: "COLLAPSED",
+                                      value: {
+                                        "¿",
+                                        #"SYSTEM_SYSRULES_richTextItem_v1"(text: { "Actualizar" }, style: { "STRONG" }),
+                                        " el Movimiento?"
+                                      }
+                                    ),
+                                    #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                                      buttons: {
+                                        #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                          label: "Aceptar",
+                                          value: true,
+                                          saveInto: {
+                                            #"SYSTEM_SYSRULES_startProcess"(
+                                              processModel: #"_a-0000eccb-293d-8000-9ba8-011c48011c48_152765",
+                                              processParameters: {
+                                                folio: ri!archivo.folio,
+                                                idSubetapa_in: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_11839"
+                                              },
+                                              onSuccess: {
+                                                a!save(
+                                                  ri!detalleMovimientos,
+                                                  a!map(
+                                                    totalRegistros: fv!processInfo.pv.registerTotal,
+                                                    registrosCumplieron: fv!processInfo.pv.complyRegisterNum,
+                                                    registrosNoCumplieron: fv!processInfo.pv.notComplyRegisterNum
+                                                  )
+                                                ),
+                                                a!save(
+                                                  ri!analisisMovimientos,
+                                                  fv!processInfo.pv.analisisMovs
+                                                )
+                                              },
+                                              onError: false
+                                            ),
+                                            a!save(local!vistaActualizar, false)
+                                          },
+                                          style: "SOLID",
+                                          color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                        ),
+                                        #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                          label: "Cancelar",
+                                          saveInto: { a!save(local!vistaActualizar, false) },
+                                          style: "OUTLINE",
+                                          color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                        )
+                                      },
+                                      align: "END"
+                                    )
+                                  },
+                                  style: "#D1DFEA",
+
+                                )
+                              }
+                            ),
+                            #"SYSTEM_SYSRULES_columnLayout"(),
+
+                          }
+                        )
+                      },
+                      showWhen: local!vistaActualizar
+                    ),
+                    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                      contents: {
+                        #"SYSTEM_SYSRULES_columnsLayout"(
+                          columns: {
+                            #"SYSTEM_SYSRULES_columnLayout"(),
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              contents: {
+                                #"SYSTEM_SYSRULES_boxLayout"(
+                                  label: "Confirmación de Movimientos Previos",
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                      labelPosition: "COLLAPSED",
+                                      value: {
+                                        "¿",
+                                        #"SYSTEM_SYSRULES_richTextItem_v1"(text: { "Cerrar" }, style: { "STRONG" }),
+                                        " el Movimiento?"
+                                      }
+                                    ),
+                                    #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                                      buttons: {
+                                        #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                          label: "Aceptar",
+                                          value: true,
+                                          saveInto: {
+                                            #"SYSTEM_SYSRULES_startProcess"(
+                                              processModel: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_205077",
+                                              processParameters: { taskId: ri!taskId }
+                                            ),
+                                            a!save(local!showPopWarning, true),
+                                            a!save(local!vistaCerrar, false)
+                                          },
+                                          style: "SOLID",
+                                          color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                        ),
+                                        #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                          label: "Cancelar",
+                                          saveInto: { a!save(local!vistaCerrar, false) },
+                                          style: "OUTLINE",
+                                          color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                        )
+                                      },
+                                      align: "END"
+                                    )
+                                  },
+                                  style: "#D1DFEA",
+
+                                )
+                              }
+                            ),
+                            #"SYSTEM_SYSRULES_columnLayout"(),
+
+                          }
+                        )
+                      },
+                      showWhen: local!vistaCerrar
+                    ),
+                    #"SYSTEM_SYSRULES_columnsLayout"(
+                      columns: {
+                        #"SYSTEM_SYSRULES_columnLayout"(contents: {}),
+                        #"SYSTEM_SYSRULES_columnLayout"(
+                          contents: {
+                            #"SYSTEM_SYSRULES_boxLayout"(
+                              label: "¿Confirma el recálculo?",
+                              contents: {
+                                #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                                  buttons: {
+                                    #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                      label: "Aceptar",
+                                      style: "SOLID",
+                                      saveInto: {
+                                        a!save(local!showWhenRecal, true),
+                                        a!save(local!popUp_Recalcular, false)
+                                      },
+                                      color: "#004B8D"
+                                    ),
+                                    #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                      label: "Cancelar",
+                                      style: "OUTLINE",
+                                      saveInto: { a!save(local!popUp_Recalcular, false) },
+                                      color: "#004B8D"
+                                    )
+                                  },
+                                  align: "END",
+                                  marginBelow: "NONE"
+                                )
+                              },
+                              style: "#D1DFEA",
+                              marginBelow: "STANDARD",
+                              showWhen: local!popUp_Recalcular
+                            )
+                          }
+                        ),
+                        #"SYSTEM_SYSRULES_columnLayout"(contents: {})
+                      },
+                      showWhen: local!popUp_Recalcular
+                    )
+                  }
+                )
+              },
+              showWhen: or(
+                local!popUp_Recalcular,
+                local!showWhenRecal,
+                local!showWhen,
+                local!showComentarios,
+                local!showPopWarning,
+                local!vistaConformarMovimientos,
+                local!vistaRechazarMovimientos,
+                local!vistaActualizar,
+                local!vistaCerrar
+              )
+            ),
+            #"SYSTEM_SYSRULES_columnLayout"(
+              contents: {
+                #"SYSTEM_SYSRULES_boxLayout"(
+                  label: "Confirmación de Movimientos Previos",
+                  style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                  showBorder: false,
+                  contents: {
+                    #"SYSTEM_SYSRULES_cardLayout"(
+                      showBorder: true,
+                      shape: "ROUNDED",
+                      contents: {
+                        #"SYSTEM_SYSRULES_columnsLayout"(
+                          columns: {
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              width: "5X",
+                              contents: {
+                                #"SYSTEM_SYSRULES_textField"(
+                                  label: "Folio: ",
+                                  value: ri!archivo.folio,
+                                  readOnly: true,
+                                  labelPosition: "JUSTIFIED"
+                                ),
+                                #"SYSTEM_SYSRULES_textField"(
+                                  label: "Nombre:",
+                                  value: ri!archivo.nombreArchSinExtension,
+                                  readOnly: true,
+                                  labelPosition: "JUSTIFIED"
+                                ),
+                                #"SYSTEM_SYSRULES_textField"(
+                                  label: "Proceso:",
+                                  value: ri!archivo.proceso.descripcion,
+                                  readOnly: true,
+                                  labelPosition: "JUSTIFIED"
+                                ),
+                                #"SYSTEM_SYSRULES_textField"(
+                                  label: "Subproceso:",
+                                  value: ri!archivo.subproceso.descripcion,
+                                  readOnly: true,
+                                  labelPosition: "JUSTIFIED"
+                                )
+                              },
+
+                            ),
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              width: "5X",
+                              contents: {
+                                #"SYSTEM_SYSRULES_textField"(
+                                  label: "Estatus:",
+                                  value: "EN EJECUCIÓN",
+                                  readOnly: true,
+                                  labelPosition: "JUSTIFIED"
+                                ),
+                                #"SYSTEM_SYSRULES_textField"(
+                                  label: "Fecha Recepción:",
+                                  value: if(
+                                    a!isNotNullOrEmpty(index(ri!archivo, "fechaRecepcion", "")),
+                                    text(ri!archivo.fechaRecepcion, "dd/mm/yyyy"),
+                                    ""
+                                  ),
+                                  readOnly: true,
+                                  labelPosition: "JUSTIFIED"
+                                ),
+                                #"SYSTEM_SYSRULES_textField"(
+                                  label: "Fecha Último Estatus:",
+                                  value: if(
+                                    a!isNotNullOrEmpty(
+                                      index(ri!archivo, "fechaUltimoEstatus", "")
+                                    ),
+                                    text(
+                                      todate(
+                                        index(ri!archivo, "fechaUltimoEstatus", "")
+                                      ),
+                                      "dd/mm/yyyy"
+                                    ),
+                                    ""
+                                  ),
+                                  readOnly: true,
+                                  labelPosition: "JUSTIFIED"
+                                ),
+
+                              },
+
+                            ),
+                            #"SYSTEM_SYSRULES_columnLayout"(),
+
+                          },
+                          showWhen: not(ri!flagSubsecuente)
+                        ),
+                        #"SYSTEM_SYSRULES_columnsLayout"(
+                          columns: {
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              width: "5X",
+                              contents: {
+                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                  value: {
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                      text: "Folio Agrupador: ",
+                                      style: "STRONG"
+                                    ),
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(text: ri!archivo.folio)
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                  value: {
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(text: "Proceso: ", style: "STRONG"),
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(text: ri!archivo.proceso.descripcion)
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                  value: {
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(text: "Subproceso: ", style: "STRONG"),
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                      text: if(
+                                        ri!archivo.subproceso.descripcion = "SUBSECUENTE INFONAVIT",
+                                        "SUBSECUENTES INFONAVIT",
+                                        ri!archivo.subproceso.descripcion
+                                      )
+                                    )
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                  value: {
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                      text: "Usuario Actualización: ",
+                                      style: "STRONG"
+                                    ),
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(text: ri!archivo.usuarioActualizacion)
+                                  }
+                                )
+                              },
+
+                            ),
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              width: "5X",
+                              contents: {
+                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                  value: {
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(text: "Valor AIV: ", style: "STRONG"),
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(text: ri!archivo.valorAivSub)
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                  value: {
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                      text: "Fecha Creación Folio: ",
+                                      style: "STRONG"
+                                    ),
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                      text: text(ri!archivo.fechaRecepcion, "dd/mm/yyyy")
+                                    )
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                  value: {
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                      text: "Fecha Liquidación: ",
+                                      style: "STRONG"
+                                    ),
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                      text: text(
+                                        ri!archivo.fechaLiquidacion,
+                                        "dd/mm/yyyy"
+                                      )
+                                    )
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                  value: {
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                      text: "Fecha Actualización: ",
+                                      style: "STRONG"
+                                    ),
+                                    #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                      text: text(
+                                        ri!archivo.fechaActualizacion,
+                                        "dd/mm/yyyy"
+                                      )
+                                    )
+                                  }
+                                )
+                              },
+
+                            ),
+                            #"SYSTEM_SYSRULES_columnLayout"()
+                          },
+                          showWhen: ri!flagSubsecuente
+                        )
+                      }
+                    ),
+
+                  },
+                  showWhen: and(
+                    not(local!showWhen),
+                    not(local!showComentarios),
+                    not(local!showWhenRecal),
+                    not(local!showPopWarning),
+                    not(local!vistaConformarMovimientos),
+                    not(local!vistaRechazarMovimientos),
+                    not(local!vistaHistorialComentarios),
+                    not(local!vistaActualizar),
+                    not(local!vistaCerrar),
+                    not(local!popUp_Recalcular)
+                  )
+                ),
+                a!localVariables(
+                  local!selectedTab: 1,
+                  {
+                    #"SYSTEM_SYSRULES_boxLayout"(
+                      label: "Detalle Movimientos",
+                      style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                      contents: {
+                        #"SYSTEM_SYSRULES_columnsLayout"(
+                          columns: {
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              width: "6X",
+                              contents: {
+                                #"SYSTEM_SYSRULES_gridField_v2"(
+                                  data: ri!detalleMovimientos,
+                                  columns: {
+                                    #"SYSTEM_SYSRULES_gridColumn"(
+                                      label: "Total de Movimientos",
+                                      value: fv!row.totalRegistros,
+                                      align: "CENTER"
+                                    ),
+                                    #"SYSTEM_SYSRULES_gridColumn"(
+                                      label: "Total de Movimientos Exitosos ",
+                                      value: fv!row.registrosCumplieron,
+                                      align: "CENTER"
+                                    ),
+                                    #"SYSTEM_SYSRULES_gridColumn"(
+                                      label: "Total de Movimientos con Error",
+                                      value: fv!row.registrosNoCumplieron,
+                                      align: "CENTER"
+                                    ),
+                                    #"SYSTEM_SYSRULES_gridColumn"(
+                                      label: "Semáforo",
+                                      value: #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                        value: #"SYSTEM_SYSRULES_richTextIcon"(
+                                          icon: "circle-large",
+                                          color: if(
+                                            tointeger(fv!row.registrosNoCumplieron) = 0,
+                                            "POSITIVE",
+                                            "NEGATIVE"
+                                          )
+                                        )
+                                      ),
+                                      align: "CENTER"
+                                    )
+                                  }
+                                )
+                              }
+                            ),
+                            #"SYSTEM_SYSRULES_columnLayout"(width: "5X")
+                          }
+                        )
+                      },
+                      showBorder: false,
+                      showWhen: and(
+                        not(local!showWhen),
+                        not(local!showComentarios),
+                        not(local!showWhenRecal),
+                        not(local!showPopWarning),
+                        not(local!vistaConformarMovimientos),
+                        not(local!vistaRechazarMovimientos),
+                        not(local!vistaHistorialComentarios),
+                        not(local!vistaActualizar),
+                        not(local!vistaCerrar),
+                        not(local!popUp_Recalcular)
+                      ),
+
+                    ),
+                    #"SYSTEM_SYSRULES_boxLayout"(
+                      label: "Análisis de Movimientos",
+                      style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                      contents: {
+                        #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                          buttons: {
+                            #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                              color: if(
+                                local!selectedTab = 1,
+                                #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350",
+                                #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_8114"
+                              ),
+                              label: "Análisis Movimientos Totales",
+                              saveInto: if(
+                                local!selectedTab = 1,
+                                {},
+                                a!save(local!selectedTab, 1)
+                              ),
+                              size: "SMALL",
+                              width: "MINIMIZE",
+                              style: if(local!selectedTab = 1, "SOLID", "SOLID")
+                            ),
+                            #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                              color: if(
+                                local!selectedTab = 2,
+                                #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350",
+                                #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_8114"
+                              ),
+                              label: "Bono",
+                              saveInto: if(
+                                local!selectedTab = 2,
+                                {},
+                                a!save(local!selectedTab, 2)
+                              ),
+                              size: "SMALL",
+                              width: "MINIMIZE",
+                              style: if(local!selectedTab = 2, "SOLID", "SOLID")
+                            ),
+                            #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                              color: if(
+                                local!selectedTab = 3,
+                                #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350",
+                                #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_8114"
+                              ),
+                              label: "Vivienda",
+                              saveInto: if(
+                                local!selectedTab = 3,
+                                {},
+                                a!save(local!selectedTab, 3)
+                              ),
+                              size: "SMALL",
+                              width: "MINIMIZE",
+                              style: if(local!selectedTab = 3, "SOLID", "SOLID")
+                            ),
+
+                          },
+                          marginBelow: "NONE"
+                        ),
+
+                      },
+                      showBorder: false,
+                      showWhen: and(
+                        not(local!showWhen),
+                        not(local!showComentarios),
+                        not(local!showWhenRecal),
+                        not(local!showPopWarning),
+                        not(local!vistaConformarMovimientos),
+                        not(local!vistaRechazarMovimientos),
+                        not(local!vistaHistorialComentarios),
+                        not(local!vistaActualizar),
+                        not(local!vistaCerrar),
+                        not(local!popUp_Recalcular)
+                      )
+                    ),
+                    if(
+                      /*TOTALES*/
+                      local!selectedTab = 1,
+                      {
+                        #"SYSTEM_SYSRULES_boxLayout"(
+                          label: "Análisis Movimientos Totales",
+                          style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                          contents: {
+                            #"SYSTEM_SYSRULES_gridLayout"(
+                              headerCells: {
+                                #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                  label: "Tipo de Aportación",
+                                  align: "CENTER"
+                                ),
+                                #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Tipo Movimiento", align: "CENTER"),
+                                #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Pesos", align: "CENTER"),
+                                #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Acciones", align: "CENTER"),
+                                #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Registros", align: "CENTER")
+                              },
+                              rows: {
+                                #"SYSTEM_SYSRULES_forEach"(
+                                  items: ri!analisisMovimientos.totalMovements.subaccounts,
+                                  expression: {
+                                    #"SYSTEM_SYSRULES_gridRowLayout"(
+                                      contents: {
+                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                            text: fv!item.subaccount.description,
+                                            color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                          ),
+                                          align: "CENTER",
+
+                                        ),
+                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                            text: fv!item.typeMovement,
+                                            color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                          ),
+                                          align: "CENTER",
+
+                                        ),
+                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                            text: if(
+                                              a!isNotNullOrEmpty(fv!item.amountPesos),
+                                              #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(nStr: fv!item.amountPesos).formatearNumero2,
+                                              ""
+                                            ),
+                                            style: "PLAIN"
+                                          ),
+                                          align: "RIGHT"
+                                        ),
+                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                            text: if(
+                                              a!isNotNullOrEmpty(fv!item.amountShares),
+                                              fv!item.amountShares,
+                                              ""
+                                            ),
+                                            style: "PLAIN"
+                                          ),
+                                          align: "RIGHT"
+                                        ),
+                                        #"SYSTEM_SYSRULES_textField"(
+                                          value: fv!item.totalRecords,
+                                          readOnly: true,
+                                          align: "CENTER"
+                                        )
+                                      }
+                                    )
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_gridRowLayout"(
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(text: "TOTALES", style: "PLAIN"),
+                                      align: "CENTER"
+                                    ),
+                                    #"SYSTEM_SYSRULES_textField"(value: "", readOnly: true),
+                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(
+                                          ri!analisisMovimientos.totalMovements.totals.amountPesos
+                                        ).formatearNumero2,
+                                        style: "STRONG"
+                                      ),
+                                      align: "RIGHT"
+                                    ),
+                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: ri!analisisMovimientos.totalMovements.totals.amountShares,
+                                        style: "STRONG"
+                                      ),
+                                      align: "RIGHT"
+                                    ),
+                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: ri!analisisMovimientos.totalMovements.totals.totalRecords,
+                                        style: "STRONG"
+                                      ),
+                                      align: "CENTER"
+                                    ),
+
+                                  }
+                                )
+                              },
+
+                            ),
+
+                          },
+                          showBorder: false,
+                          marginAbove: "NONE",
+                          showWhen: and(
+                            not(local!showWhen),
+                            not(local!showComentarios),
+                            not(local!showWhenRecal),
+                            not(local!showPopWarning),
+                            not(local!vistaConformarMovimientos),
+                            not(local!vistaRechazarMovimientos),
+                            not(local!vistaHistorialComentarios),
+                            not(local!vistaActualizar),
+                            not(local!vistaCerrar),
+                            not(local!popUp_Recalcular)
+                          )
+                        ),
+                        #"SYSTEM_SYSRULES_forEach"(
+                          items: ri!analisisMovimientos.sieforeMovements,
+                          expression: if(
+                            fv!item.siefore.description &lt;&gt; "VIVIENDA",
+                            {
+                              #"SYSTEM_SYSRULES_boxLayout"(
+                                label: fv!item.siefore.description,
+                                style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                showBorder: false,
+                                contents: {
+                                  #"SYSTEM_SYSRULES_boxLayout"(
+                                    label: "IMSS",
+                                    style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                    showBorder: false,
+                                    contents: {
+                                      #"SYSTEM_SYSRULES_gridLayout"(
+                                        headerCells: {
+                                          #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                            label: "Tipo de Aportación ",
+                                            align: "CENTER"
+                                          ),
+                                          #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Tipo Movimiento", align: "CENTER"),
+                                          #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Pesos", align: "CENTER"),
+                                          #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Acciones", align: "CENTER"),
+                                          #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Registros", align: "CENTER")
+                                        },
+                                        rows: {
+                                          if(
+                                            and(
+                                              a!isNotNullOrEmpty(fv!item.subaccounts),
+                                              or(
+                                                fv!item.subaccounts[1].regime = "IMSS",
+                                                fv!item.subaccounts[1].regime = "OTRO"
+                                              )
+                                            ),
+                                            #"SYSTEM_SYSRULES_forEach"(
+                                              items: fv!item.subaccounts,
+                                              expression: {
+                                                #"SYSTEM_SYSRULES_gridRowLayout"(
+                                                  contents: {
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: fv!item.subaccount.description,
+                                                        color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                      ),
+                                                      align: "CENTER",
+
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: fv!item.typeMovement,
+                                                        color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                      ),
+                                                      align: "CENTER"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: if(
+                                                          a!isNotNullOrEmpty(fv!item.amountPesos),
+                                                          #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(nStr: fv!item.amountPesos).formatearNumero2,
+                                                          ""
+                                                        ),
+                                                        style: "PLAIN"
+                                                      ),
+                                                      align: "RIGHT"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: if(
+                                                          a!isNotNullOrEmpty(fv!item.amountShares),
+                                                          fv!item.amountShares,
+                                                          ""
+                                                        ),
+                                                        style: "PLAIN"
+                                                      ),
+                                                      align: "RIGHT"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_textField"(
+                                                      value: fv!item.totalRecords,
+                                                      readOnly: true,
+                                                      align: "CENTER"
+                                                    )
+                                                  }
+                                                ),
+
+                                              }
+                                            ),
+                                            {}
+                                          ),
+                                          if(
+                                            and(
+                                              a!isNotNullOrEmpty(fv!item.subaccounts),
+                                              or(
+                                                fv!item.subaccounts[1].regime = "IMSS",
+                                                fv!item.subaccounts[1].regime = "OTRO"
+                                              )
+                                            ),
+                                            #"SYSTEM_SYSRULES_forEach"(
+                                              items: fv!item.totals,
+                                              expression: {
+                                                #"SYSTEM_SYSRULES_gridRowLayout"(
+                                                  contents: {
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(text: "TOTALES", style: "PLAIN"),
+                                                      align: "CENTER"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_textField"(value: {}, readOnly: true),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: if(
+                                                          a!isNotNullOrEmpty(fv!item.amountPesos),
+                                                          #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(nStr: fv!item.amountPesos).formatearNumero2,
+                                                          ""
+                                                        ),
+                                                        style: "STRONG"
+                                                      ),
+                                                      align: "RIGHT"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_textField"(
+                                                      value: fv!item.amountShares,
+                                                      readOnly: true,
+                                                      align: "RIGHT"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_textField"(
+                                                      value: fv!item.totalRecords,
+                                                      readOnly: true,
+                                                      align: "CENTER"
+                                                    )
+                                                  }
+                                                )
+                                              }
+                                            ),
+                                            {}
+                                          ),
+
+                                        },
+                                        emptyGridMessage: "Sin contenido"
+                                      )
+                                    }
+                                  ),
+                                  #"SYSTEM_SYSRULES_boxLayout"(
+                                    label: "ISSSTE",
+                                    style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                    showBorder: false,
+                                    contents: {
+                                      #"SYSTEM_SYSRULES_gridLayout"(
+                                        headerCells: {
+                                          #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                            label: "Tipo de Aportación",
+                                            align: "CENTER",
+
+                                          ),
+                                          #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Tipo Movimiento", align: "CENTER"),
+                                          #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Pesos", align: "CENTER"),
+                                          #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Acciones", align: "CENTER"),
+                                          #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Registros", align: "CENTER")
+                                        },
+                                        rows: {
+                                          if(
+                                            and(
+                                              a!isNotNullOrEmpty(fv!item.subaccounts),
+                                              fv!item.subaccounts[1].regime = "ISSSTE"
+                                            ),
+                                            #"SYSTEM_SYSRULES_forEach"(
+                                              items: fv!item.subaccounts,
+                                              expression: {
+                                                #"SYSTEM_SYSRULES_gridRowLayout"(
+                                                  contents: {
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: fv!item.subaccount.description,
+                                                        color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                      ),
+                                                      align: "CENTER",
+
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: fv!item.typeMovement,
+                                                        color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                      ),
+                                                      align: "CENTER"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: if(
+                                                          a!isNotNullOrEmpty(fv!item.amountPesos),
+                                                          #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(nStr: fv!item.amountPesos).formatearNumero2,
+                                                          ""
+                                                        ),
+                                                        style: "PLAIN"
+                                                      ),
+                                                      align: "RIGHT"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: if(
+                                                          a!isNotNullOrEmpty(fv!item.amountShares),
+                                                          fv!item.amountShares,
+                                                          ""
+                                                        ),
+                                                        style: "PLAIN"
+                                                      ),
+                                                      align: "RIGHT"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_textField"(
+                                                      value: fv!item.totalRecords,
+                                                      readOnly: true,
+                                                      align: "CENTER"
+                                                    )
+                                                  }
+                                                ),
+
+                                              }
+                                            ),
+                                            {}
+                                          ),
+                                          if(
+                                            and(
+                                              a!isNotNullOrEmpty(fv!item.subaccounts),
+                                              fv!item.subaccounts[1].regime = "ISSSTE"
+                                            ),
+                                            #"SYSTEM_SYSRULES_forEach"(
+                                              items: fv!item.totals,
+                                              expression: {
+                                                #"SYSTEM_SYSRULES_gridRowLayout"(
+                                                  contents: {
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(text: "TOTALES", style: "PLAIN"),
+                                                      align: "CENTER"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_textField"(value: {}, readOnly: true),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: if(
+                                                          a!isNotNullOrEmpty(fv!item.amountPesos),
+                                                          #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(nStr: fv!item.amountPesos).formatearNumero2,
+                                                          ""
+                                                        ),
+                                                        style: "STRONG"
+                                                      ),
+                                                      align: "RIGHT"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: fv!item.amountShares,
+                                                        style: "STRONG"
+                                                      ),
+                                                      align: "RIGHT"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: fv!item.totalRecords,
+                                                        style: "STRONG"
+                                                      ),
+                                                      align: "CENTER"
+                                                    ),
+
+                                                  }
+                                                )
+                                              }
+                                            ),
+                                            {}
+                                          ),
+
+                                        },
+                                        emptyGridMessage: "Sin contenido",
+                                        spacing: "DENSE"
+                                      )
+                                    },
+                                    /*marginAbove: "EVEN_LESS",*/
+                                    /*marginBelow: "NONE",*/
+
+                                  )
+                                },
+                                showWhen: and(
+                                  not(local!showWhen),
+                                  not(local!showComentarios),
+                                  not(local!showWhenRecal),
+                                  not(local!showPopWarning),
+                                  not(local!vistaConformarMovimientos),
+                                  not(local!vistaRechazarMovimientos),
+                                  not(local!vistaHistorialComentarios),
+                                  not(local!vistaActualizar),
+                                  not(local!vistaCerrar),
+                                  not(local!popUp_Recalcular)
+                                )
+                              )
+                            },
+                            {}
+                          ),
+
+                        ),
+
+                      },
+                      {}
+                    ),
+                    if(
+                      /*BONO*/
+                      local!selectedTab = 2,
+                      {
+                        #"SYSTEM_SYSRULES_boxLayout"(
+                          label: "BONO",
+                          style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                          showBorder: false,
+                          contents: {
+                            if(
+                              contains(
+                                tointeger(
+                                  index(
+                                    ri!analisisMovimientos,
+                                    "sieforeMovements",
+                                    "siefore",
+                                    "id",
+                                    {}
+                                  )
+                                ),
+                                80
+                              ),
+                              {
+                                #"SYSTEM_SYSRULES_forEach"(
+                                  items: index(
+                                    ri!analisisMovimientos,
+                                    "sieforeMovements",
+                                    {}
+                                  ),
+                                  expression: {
+                                    if(
+                                      tointeger(fv!item.siefore.id) = 80,
+                                      {
+                                        /*IMSS*/
+                                        #"SYSTEM_SYSRULES_boxLayout"(
+                                          label: "IMSS",
+                                          style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                          showBorder: false,
+                                          contents: #"SYSTEM_SYSRULES_gridLayout"(
+                                            headerCells: {
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                                label: "Tipo de Aportación",
+                                                align: "CENTER"
+                                              ),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Tipo Movimiento", align: "CENTER"),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Pesos", align: "CENTER"),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Acciones", align: "CENTER"),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Registros", align: "CENTER")
+                                            },
+                                            rows: {
+                                              #"SYSTEM_SYSRULES_forEach"(
+                                                items: fv!item.subaccounts,
+                                                expression: {
+                                                  #"SYSTEM_SYSRULES_gridRowLayout"(
+                                                    contents: {
+                                                      #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                        value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                          text: fv!item.subaccount.description,
+                                                          color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                        ),
+                                                        align: "CENTER"
+                                                      ),
+                                                      #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                        value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                          text: fv!item.typeMovement,
+                                                          color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                        ),
+                                                        align: "CENTER"
+                                                      ),
+                                                      #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                        value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                          text: if(
+                                                            a!isNotNullOrEmpty(fv!item.amountPesos),
+                                                            #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(nStr: fv!item.amountPesos).formatearNumero2,
+                                                            ""
+                                                          ),
+                                                          style: "PLAIN"
+                                                        ),
+                                                        align: "RIGHT"
+                                                      ),
+                                                      #"SYSTEM_SYSRULES_textField"(
+                                                        value: text(fv!item.amountShares, "#,##"),
+                                                        readOnly: true,
+                                                        align: "RIGHT"
+                                                      ),
+                                                      #"SYSTEM_SYSRULES_textField"(
+                                                        value: fv!item.totalRecords,
+                                                        readOnly: true,
+                                                        align: "CENTER"
+                                                      )
+                                                    }
+                                                  ),
+
+                                                }
+                                              ),
+                                              #"SYSTEM_SYSRULES_forEach"(
+                                                items: fv!item.totals,
+                                                expression: {
+                                                  #"SYSTEM_SYSRULES_gridRowLayout"(
+                                                    contents: {
+                                                      #"SYSTEM_SYSRULES_textField"(value: "TOTALES", align: "CENTER"),
+                                                      #"SYSTEM_SYSRULES_textField"(value: {}, readOnly: true),
+                                                      #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                        value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                          text: if(
+                                                            a!isNotNullOrEmpty(fv!item.amountPesos),
+                                                            #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(nStr: fv!item.amountPesos).formatearNumero2,
+                                                            ""
+                                                          ),
+                                                          style: "STRONG"
+                                                        ),
+                                                        align: "RIGHT"
+                                                      ),
+                                                      #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                        value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                          text: text(fv!item.amountShares, "#,##0"),
+                                                          style: "STRONG"
+                                                        ),
+                                                        align: "RIGHT"
+                                                      ),
+                                                      #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                        value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                          text: fv!item.totalRecords,
+                                                          style: "STRONG"
+                                                        ),
+                                                        align: "CENTER"
+                                                      ),
+
+                                                    }
+                                                  )
+                                                }
+                                              )
+                                            }
+                                          )
+                                        ),
+                                        /*ISSSTE*/
+                                        #"SYSTEM_SYSRULES_boxLayout"(
+                                          label: "ISSSTE",
+                                          style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                          showBorder: false,
+                                          contents: #"SYSTEM_SYSRULES_gridLayout"(
+                                            headerCells: {
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                                label: "Tipo de Aportación",
+                                                align: "Center"
+                                              ),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Tipo Movimiento", align: "Center"),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Pesos", align: "Center"),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Acciones", align: "Center"),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Registros", align: "Center")
+                                            },
+                                            rows: {}
+                                          )
+                                        )
+                                      },
+                                      {}
+                                    )
+                                  }
+                                )
+                              },
+                              {
+                                #"SYSTEM_SYSRULES_boxLayout"(
+                                  label: "IMSS",
+                                  style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                  showBorder: false,
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_gridLayout"(
+                                      headerCells: {
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                          label: "Tipo de Aportación",
+                                          align: "CENTER"
+                                        ),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Tipo Movimiento", align: "CENTER"),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Pesos", align: "CENTER"),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Acciones", align: "CENTER"),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Registros", align: "CENTER")
+                                      },
+                                      emptyGridMessage: "Sin contenido"
+                                    )
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_boxLayout"(
+                                  label: "ISSSTE",
+                                  style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                  showBorder: false,
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_gridLayout"(
+                                      headerCells: {
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                          label: "Tipo de Aportación",
+                                          align: "CENTER"
+                                        ),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Tipo Movimiento", align: "CENTER"),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Pesos", align: "CENTER"),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Acciones", align: "CENTER"),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Registros", align: "CENTER")
+                                      },
+                                      emptyGridMessage: "Sin contenido"
+                                    )
+                                  }
+                                )
+                              }
+                            )
+                          },
+                          showWhen: and(
+                            not(local!showWhen),
+                            not(local!showComentarios),
+                            not(local!showWhenRecal),
+                            not(local!showPopWarning),
+                            not(local!vistaConformarMovimientos),
+                            not(local!vistaRechazarMovimientos),
+                            not(local!vistaHistorialComentarios),
+                            not(local!vistaActualizar),
+                            not(local!vistaCerrar),
+                            not(local!popUp_Recalcular)
+                          )
+                        )
+                      },
+                      {}
+                    ),
+                    if(
+                      /*VIVIENDA*/
+                      local!selectedTab = 3,
+                      {
+                        #"SYSTEM_SYSRULES_boxLayout"(
+                          label: "VIVIENDA",
+                          style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                          showBorder: false,
+                          contents: {
+                            if(
+                              contains(
+                                tointeger(
+                                  index(
+                                    ri!analisisMovimientos,
+                                    "sieforeMovements",
+                                    "siefore",
+                                    "id",
+                                    {}
+                                  )
+                                ),
+                                81
+                              ),
+                              {
+                                #"SYSTEM_SYSRULES_forEach"(
+                                  items: index(
+                                    ri!analisisMovimientos,
+                                    "sieforeMovements",
+                                    {}
+                                  ),
+                                  expression: {
+                                    if(
+                                      tointeger(fv!item.siefore.id) = 81,
+                                      {
+                                        /*IMSS*/
+                                        #"SYSTEM_SYSRULES_boxLayout"(
+                                          label: "IMSS",
+                                          style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                          showBorder: false,
+                                          contents: #"SYSTEM_SYSRULES_gridLayout"(
+                                            headerCells: {
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                                label: "Tipo de Aportación",
+                                                align: "CENTER"
+                                              ),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Tipo Movimiento", align: "CENTER"),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Pesos", align: "CENTER"),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Acciones", align: "CENTER"),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Registros", align: "CENTER")
+                                            },
+                                            rows: {
+                                              /*if(and(a!isNotNullOrEmpty(fv!item.subaccounts),or(fv!item.subaccounts[1].regime="IMSS",fv!item.subaccounts[1].regime="OTRO")),*/
+                                              /*                                              */
+                                              /*a!forEach(*/
+                                              /*items: fv!item.subaccounts,*/
+                                              /*expression: {*/
+                                              /*a!gridRowLayout(*/
+                                              /*contents: {*/
+                                              /*a!richTextDisplayField(*/
+                                              /*value: a!richTextItem(text:fv!item.subaccount.description, color:cons!NCI_Color_Negro_Text),*/
+                                              /*align: "CENTER"*/
+                                              /*),*/
+                                              /*a!richTextDisplayField(*/
+                                              /*value: a!richTextItem(text:fv!item.typeMovement, color: cons!NCI_Color_Negro_Text),*/
+                                              /*align: "CENTER"*/
+                                              /*),*/
+                                              /*a!richTextDisplayField(*/
+                                              /*value: a!richTextItem(*/
+                                              /*text: if(*/
+                                              /*a!isNotNullOrEmpty(fv!item.amountPesos),*/
+                                              /*rule!PIMF_FormatearNumeros(nStr: fv!item.amountPesos).formatearNumero2,*/
+                                              /*""*/
+                                              /*),*/
+                                              /*style: "PLAIN"*/
+                                              /*),*/
+                                              /*align: "RIGHT"*/
+                                              /*),*/
+                                              /*a!textField(*/
+                                              /*value: fv!item.amountShares,*/
+                                              /*readOnly: true,*/
+                                              /*align: "RIGHT"*/
+                                              /*),*/
+                                              /*a!textField(*/
+                                              /*value: fv!item.totalRecords,*/
+                                              /*readOnly: true,*/
+                                              /*align: "CENTER"*/
+                                              /*)*/
+                                              /*}*/
+                                              /*),*/
+                                              /*                                                  */
+                                              /*}*/
+                                              /*)*/
+                                              a!localVariables(
+                                                local!siefore: fv!item,
+                                                local!subaccounts: index(local!siefore, "subaccounts", {}),
+                                                local!firstSub: index(local!subaccounts, 1, {}),
+                                                if(
+                                                  and(
+                                                    a!isNotNullOrEmpty(local!subaccounts),
+                                                    or(
+                                                      index(local!firstSub, "regime", null) = "IMSS",
+                                                      index(local!firstSub, "regime", null) = "OTRO"
+                                                    )
+                                                  ),
+                                                  #"SYSTEM_SYSRULES_forEach"(
+                                                    items: local!subaccounts,
+                                                    expression: #"SYSTEM_SYSRULES_gridRowLayout"(
+                                                      contents: {
+                                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                            text: index(
+                                                              index(fv!item, "subaccount", {}),
+                                                              "description",
+                                                              ""
+                                                            ),
+                                                            color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                          ),
+                                                          align: "CENTER"
+                                                        ),
+                                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                            text: index(fv!item, "typeMovement", ""),
+                                                            color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                          ),
+                                                          align: "CENTER"
+                                                        ),
+                                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                            text: if(
+                                                              a!isNotNullOrEmpty(index(fv!item, "amountPesos", null)),
+                                                              #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(nStr: index(fv!item, "amountPesos", "")).formatearNumero2,
+                                                              ""
+                                                            ),
+                                                            style: "PLAIN"
+                                                          ),
+                                                          align: "RIGHT"
+                                                        ),
+                                                        #"SYSTEM_SYSRULES_textField"(
+                                                          value: index(fv!item, "amountShares", ""),
+                                                          readOnly: true,
+                                                          align: "RIGHT"
+                                                        ),
+                                                        #"SYSTEM_SYSRULES_textField"(
+                                                          value: index(fv!item, "totalRecords", 0),
+                                                          readOnly: true,
+                                                          align: "CENTER"
+                                                        )
+                                                      }
+                                                    )
+                                                  ),
+                                                  {}
+                                                )
+                                              ),
+                                              if(
+                                                and(
+                                                  a!isNotNullOrEmpty(fv!item.subaccounts),
+                                                  or(
+                                                    fv!item.subaccounts[1].regime = "IMSS",
+                                                    fv!item.subaccounts[1].regime = "OTRO"
+                                                  )
+                                                ),
+                                                a!localVariables(
+                                                  local!siefore: fv!item,
+                                                  local!subaccounts: index(local!siefore, "subaccounts", {}),
+                                                  local!firstSub: index(local!subaccounts, 1, {}),
+                                                  local!totals: index(local!siefore, "totals", {}),
+                                                  if(
+                                                    and(
+                                                      a!isNotNullOrEmpty(local!subaccounts),
+                                                      or(
+                                                        index(local!firstSub, "regime", null) = "IMSS",
+                                                        index(local!firstSub, "regime", null) = "OTRO"
+                                                      )
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_forEach"(
+                                                      items: local!totals,
+                                                      expression: #"SYSTEM_SYSRULES_gridRowLayout"(
+                                                        contents: {
+                                                          #"SYSTEM_SYSRULES_textField"(
+                                                            value: "TOTALES",
+                                                            readOnly: true,
+                                                            align: "CENTER"
+                                                          ),
+                                                          #"SYSTEM_SYSRULES_textField"(value: {}, readOnly: true),
+                                                          #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                            value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                              text: if(
+                                                                a!isNotNullOrEmpty(index(fv!item, "amountPesos", null)),
+                                                                #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(nStr: index(fv!item, "amountPesos", "")).formatearNumero2,
+                                                                ""
+                                                              ),
+                                                              style: "STRONG"
+                                                            ),
+                                                            align: "RIGHT"
+                                                          ),
+                                                          #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                            value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                              text: index(fv!item, "amountShares", ""),
+                                                              style: "STRONG"
+                                                            ),
+                                                            align: "RIGHT"
+                                                          ),
+                                                          #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                            value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                              text: tostring(index(fv!item, "totalRecords", 0)),
+                                                              style: "STRONG"
+                                                            ),
+                                                            align: "CENTER"
+                                                          )
+                                                        }
+                                                      )
+                                                    ),
+                                                    {}
+                                                  )
+                                                ),
+                                                {}
+                                              ),
+
+                                            },
+                                            emptyGridMessage: "Sin contenido"
+                                          )
+                                        ),
+                                        /*ISSSTE*/
+                                        #"SYSTEM_SYSRULES_boxLayout"(
+                                          label: "ISSSTE",
+                                          style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                          showBorder: false,
+                                          contents: #"SYSTEM_SYSRULES_gridLayout"(
+                                            headerCells: {
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                                label: "Tipo de Aportación",
+                                                align: "CENTER"
+                                              ),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Tipo Movimiento", align: "CENTER"),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Pesos", align: "CENTER"),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Acciones", align: "CENTER"),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Registros", align: "CENTER")
+                                            },
+                                            /*rows: {*/
+                                            /*if(and(a!isNotNullOrEmpty(fv!item.subaccounts),fv!item.subaccounts[1].regime="ISSSTE"),*/
+                                            /*a!forEach(*/
+                                            /*items: fv!item.subaccounts,*/
+                                            /*expression: {*/
+                                            /*a!gridRowLayout(*/
+                                            /*contents: {*/
+                                            /*a!richTextDisplayField(*/
+                                            /*value: a!richTextItem(text:fv!item.subaccount.description, color:cons!NCI_Color_Negro_Text),*/
+                                            /*align: "CENTER"*/
+                                            /*),*/
+                                            /*a!richTextDisplayField(*/
+                                            /*value: a!richTextItem(text:fv!item.typeMovement, color: cons!NCI_Color_Negro_Text),*/
+                                            /*align: "CENTER"*/
+                                            /*),*/
+                                            /*a!richTextDisplayField(*/
+                                            /*value: a!richTextItem(*/
+                                            /*text: if(*/
+                                            /*a!isNotNullOrEmpty(fv!item.amountPesos),*/
+                                            /*rule!PIMF_FormatearNumeros(nStr: fv!item.amountPesos).formatearNumero2,*/
+                                            /*""*/
+                                            /*),*/
+                                            /*style: "PLAIN"*/
+                                            /*),*/
+                                            /*align: "RIGHT"*/
+                                            /*),*/
+                                            /*a!textField(*/
+                                            /*value: fv!item.amountShares,*/
+                                            /*readOnly: true,*/
+                                            /*align: "RIGHT"*/
+                                            /*),*/
+                                            /*a!textField(*/
+                                            /*value: fv!item.totalRecords,*/
+                                            /*readOnly: true,*/
+                                            /*align: "CENTER"*/
+                                            /*)*/
+                                            /*}*/
+                                            /*),*/
+                                            /**/
+                                            /*}*/
+                                            /*),{}),*/
+                                            /*if(and(a!isNotNullOrEmpty(fv!item.subaccounts),fv!item.subaccounts[1].regime="ISSSTE"),*/
+                                            /*a!forEach(*/
+                                            /*items: fv!item.totals,*/
+                                            /*expression: {*/
+                                            /*a!gridRowLayout(*/
+                                            /*contents: {*/
+                                            /*a!textField(value: "TOTALES",align: "CENTER",  readOnly: true),*/
+                                            /*a!textField(value: {}, readOnly: true),*/
+                                            /*a!richTextDisplayField(*/
+                                            /*value: a!richTextItem(*/
+                                            /*text: if(*/
+                                            /*a!isNotNullOrEmpty(fv!item.amountPesos),*/
+                                            /*rule!PIMF_FormatearNumeros(nStr: fv!item.amountPesos).formatearNumero2,*/
+                                            /*""*/
+                                            /*),*/
+                                            /*style: "STRONG"*/
+                                            /*),*/
+                                            /*align: "RIGHT"*/
+                                            /*),*/
+                                            /*a!richTextDisplayField(*/
+                                            /*value: a!richTextItem(*/
+                                            /*text:  fv!item.amountShares,   */
+                                            /*style: "STRONG"*/
+                                            /*),*/
+                                            /*align: "RIGHT"*/
+                                            /*),*/
+                                            /*a!richTextDisplayField(*/
+                                            /*value: a!richTextItem(*/
+                                            /*text: fv!item.totalRecords,   */
+                                            /*style: "STRONG"*/
+                                            /*),*/
+                                            /*align: "CENTER"*/
+                                            /*),*/
+                                            /*}*/
+                                            /*)*/
+                                            /*}*/
+                                            /*),{}),*/
+                                            /*},*/
+                                            rows: {
+                                              if(
+                                                and(
+                                                  a!isNotNullOrEmpty(index(fv!item, "subaccounts", {})),
+                                                  index(index(fv!item, "subaccounts", {}), 1, {}).regime = "ISSSTE"
+                                                ),
+                                                #"SYSTEM_SYSRULES_forEach"(
+                                                  items: index(fv!item, "subaccounts", {}),
+                                                  expression: a!localVariables(
+                                                    local!sub: fv!item,
+                                                    #"SYSTEM_SYSRULES_gridRowLayout"(
+                                                      contents: {
+                                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                            text: index(
+                                                              index(local!sub, "subaccount", {}),
+                                                              "description",
+                                                              ""
+                                                            ),
+                                                            color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                          ),
+                                                          align: "CENTER"
+                                                        ),
+                                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                            text: index(local!sub, "typeMovement", ""),
+                                                            color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                          ),
+                                                          align: "CENTER"
+                                                        ),
+                                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                            text: if(
+                                                              a!isNotNullOrEmpty(index(local!sub, "amountPesos", null)),
+                                                              #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(nStr: index(local!sub, "amountPesos", "")).formatearNumero2,
+                                                              ""
+                                                            ),
+                                                            style: "PLAIN"
+                                                          ),
+                                                          align: "RIGHT"
+                                                        ),
+                                                        #"SYSTEM_SYSRULES_textField"(
+                                                          value: index(local!sub, "amountShares", ""),
+                                                          readOnly: true,
+                                                          align: "RIGHT"
+                                                        ),
+                                                        #"SYSTEM_SYSRULES_textField"(
+                                                          value: index(local!sub, "totalRecords", 0),
+                                                          readOnly: true,
+                                                          align: "CENTER"
+                                                        )
+                                                      }
+                                                    )
+                                                  )
+                                                ),
+                                                {}
+                                              ),
+                                              if(
+                                                and(
+                                                  a!isNotNullOrEmpty(index(fv!item, "subaccounts", {})),
+                                                  index(index(fv!item, "subaccounts", {}), 1, {}).regime = "ISSSTE"
+                                                ),
+                                                #"SYSTEM_SYSRULES_forEach"(
+                                                  items: index(fv!item, "totals", {}),
+                                                  expression: a!localVariables(
+                                                    local!t: fv!item,
+                                                    #"SYSTEM_SYSRULES_gridRowLayout"(
+                                                      contents: {
+                                                        #"SYSTEM_SYSRULES_textField"(
+                                                          value: "TOTALES",
+                                                          align: "CENTER",
+                                                          readOnly: true
+                                                        ),
+                                                        #"SYSTEM_SYSRULES_textField"(value: {}, readOnly: true),
+                                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                            text: if(
+                                                              a!isNotNullOrEmpty(index(local!t, "amountPesos", null)),
+                                                              #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(nStr: index(local!t, "amountPesos", "")).formatearNumero2,
+                                                              ""
+                                                            ),
+                                                            style: "STRONG"
+                                                          ),
+                                                          align: "RIGHT"
+                                                        ),
+                                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                            text: index(local!t, "amountShares", ""),
+                                                            style: "STRONG"
+                                                          ),
+                                                          align: "RIGHT"
+                                                        ),
+                                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                            text: tostring(index(local!t, "totalRecords", 0)),
+                                                            style: "STRONG"
+                                                          ),
+                                                          align: "CENTER"
+                                                        )
+                                                      }
+                                                    )
+                                                  )
+                                                ),
+                                                {}
+                                              )
+                                            }
+                                          )
+                                        )
+                                      },
+                                      {}
+                                    )
+                                  }
+                                )
+                              },
+                              {
+                                #"SYSTEM_SYSRULES_boxLayout"(
+                                  label: "IMSS",
+                                  style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                  showBorder: false,
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_gridLayout"(
+                                      headerCells: {
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                          label: "Tipo de Aportación",
+                                          align: "CENTER"
+                                        ),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Tipo Movimiento", align: "CENTER"),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Pesos", align: "CENTER"),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Acciones", align: "CENTER"),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Registros", align: "CENTER")
+                                      },
+                                      emptyGridMessage: "Sin contenido"
+                                    )
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_boxLayout"(
+                                  label: "ISSSTE",
+                                  style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                  showBorder: false,
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_gridLayout"(
+                                      headerCells: {
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                          label: "Tipo de Aportación",
+                                          align: "CENTER"
+                                        ),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Tipo Movimiento", align: "CENTER"),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Pesos", align: "CENTER"),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Acciones", align: "CENTER"),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Registros", align: "CENTER")
+                                      },
+                                      emptyGridMessage: "Sin contenido"
+                                    )
+                                  }
+                                )
+                              }
+                            )
+                          },
+                          showWhen: and(
+                            not(local!showWhen),
+                            not(local!showComentarios),
+                            not(local!showWhenRecal),
+                            not(local!showPopWarning),
+                            not(local!vistaConformarMovimientos),
+                            not(local!vistaRechazarMovimientos),
+                            not(local!vistaHistorialComentarios),
+                            not(local!vistaActualizar),
+                            not(local!vistaCerrar),
+                            not(local!popUp_Recalcular)
+                          )
+                        )
+                      },
+                      {}
+                    ),
+                    /*Agregado para  descarga asincrona bloque*/
+                    #"d8c51b1b-47f4-494a-a360-e31b8c316406"(
+                      docId_int: local!docId_int,
+                      /*IMPORTANTE CAMBIAR A COMO ESTABA EN LA DESCARAGA*/
+                      nombre: concat(
+                        "Movimientos_",
+                        index(
+                          ri!archivo,
+                          "folio",
+                          null
+                        ),
+                        ".csv"
+                      ),
+                      mensajeRespuesta: local!mensajeRespuesta,
+                      intentoDescarga: local!intentoDescarga,
+                      consultaDoc: local!consultaDoc
+                    ),
+                    /*Agregado para  descarga asincrona bloque*/
+                    #"SYSTEM_SYSRULES_columnsLayout"(
+                      columns: {
+                       
+                        #"SYSTEM_SYSRULES_columnLayout"(
+                          contents: {
+                            #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                              marginAbove: "LESS",
+                              marginBelow: "EVEN_LESS",
+                              buttons: {
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "Confirmar Movimientos",
+                                  submit: false,
+                                  saveInto: a!save(local!vistaConformarMovimientos, true),
+                                  style: "SOLID",
+                                  color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                  size: "SMALL"
+                                ),
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "Rechazar Movimientos",
+                                  style: "SOLID",
+                                  submit: false,
+                                  value: 2,
+                                  saveInto: {
+                                    a!save(ri!option, 2),
+                                    a!save(local!showWhen, true),
+                                    a!save(ri!validation, false)
+                                  },
+                                  color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                  showWhen: if(
+                                    or(
+                                      ri!archivo.subproceso.id = 9,
+                                      ri!archivo.subproceso.id = 105,
+
+                                    ),
+                                    false,
+                                    true
+                                  ),
+                                  size: "SMALL"
+                                ),
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "Recálculo de Movimientos",
+                                  value: 3,
+                                  saveInto: {
+                                    ri!option,
+                                    a!save(local!popUp_Recalcular, true),
+
+                                  },
+                                  style: "SOLID",
+                                  color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                  size: "SMALL"
+                                ),
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "Historial de Comentarios",
+                                  value: 4,
+                                  saveInto: {
+                                    ri!option,
+                                    a!save(local!showComentarios, true),
+                                    /*a!save(local!vistaHistorialComentarios, true)*/
+
+                                  },
+                                  style: "SOLID",
+                                  submit: false,
+                                  showWhen: if(
+                                    contains(
+                                      #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_210313",
+                                      loggedInUser()
+                                    ),
+                                    true,
+                                    if(
+                                      #"_a-0000eccb-293d-8000-9ba8-011c48011c48_172682",
+                                      #"urn:appian:function:v1:a:isusermemberofgroup?okey=a!isUserMemberOfGroup"(
+                                        loggedInUser(),
+                                        #"3c03977e-8ac9-4036-a4e1-27adfa1f1036"(
+                                          task: "CONSULTAR COMENTARIOS",
+                                          Proceso: "RECAUDACION"
+                                        )
+                                      ),
+                                      true
+                                    )
+                                  ),
+                                  color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_34909",
+                                  size: "SMALL"
+                                ),
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "Actualizar",
+                                  value: true,
+                                  saveInto: {
+                                    #"SYSTEM_SYSRULES_startProcess"(
+                                      processModel: #"_a-0000eccb-293d-8000-9ba8-011c48011c48_152765",
+                                      processParameters: {
+                                        folio: ri!archivo.folio,
+                                        idSubetapa_in: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_11839"
+                                      },
+                                      onSuccess: {
+                                        a!save(
+                                          ri!detalleMovimientos,
+                                          a!map(
+                                            totalRegistros: fv!processInfo.pv.registerTotal,
+                                            registrosCumplieron: fv!processInfo.pv.complyRegisterNum,
+                                            registrosNoCumplieron: fv!processInfo.pv.notComplyRegisterNum
+                                          )
+                                        ),
+                                        a!save(
+                                          ri!analisisMovimientos,
+                                          fv!processInfo.pv.analisisMovs
+                                        )
+                                      },
+                                      onError: false
+                                    ),
+
+                                  },
+                                  style: "SOLID",
+                                  color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_34909",
+                                  size: "SMALL"
+                                ),
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  /*Agregado para  descarga asincrona*/
+                                  label: if(and(local!intentoDescarga,local!mensajeRespuesta="Incompleto"),if(a!isNullOrEmpty(local!consultaDoc),"Descargando Excel","Documento Disponible"),"Exportar Excel"),
+                                  /*Agregado para  descarga asincrona*/
+                                  icon: if(and(local!intentoDescarga,local!mensajeRespuesta="Incompleto"),if(a!isNullOrEmpty(local!consultaDoc),"spinner-alt","file-export"),null),
+                                  value: true,
+                                  saveInto: {
+                                    #"SYSTEM_SYSRULES_startProcess3"(
+                                      processModel: #"_a-0000ee45-8509-8000-9bb1-011c48011c48_330655",
+                                      processParameters: {
+                                        user:loggedInUser(),
+                                        /*Agregado para  descarga asincrona*/
+                                        idInstancia: index(ri!request,"idInstancia",null),
+                                        inputService: a!map(
+                                          lstFolios: index(ri!archivo, "folio", null),
+                                          /*Agregado para  descarga asincrona*/
+                                          folioRequerido: index(ri!archivo, "folio", null),
+                                          substageFlag: "CONFIRMACION"
+                                        ),
+                                        option: 9
+                                      },
+                                      isSynchronous: true,
+                                      onSuccess: {
+                                        a!save(
+                                          local!docId_int,
+                                          index(fv!processInfo.pv, "document", null)
+                                        ),
+                                        a!save(
+                                          local!mensajeRespuesta,
+                                          index(fv!processInfo.pv, "mensajeRespuesta", null),
+                                        )
+                                      },
+                                      /*Agregado para  descarga asincrona bloque*/
+                                      onIncomplete: {
+
+                                        a!save(
+                                          local!mensajeRespuesta,
+                                          "Incompleto",
+
+                                        )
+                                      }
+                                      /*Agregado para  descarga asincrona bloque*/
+                                    ),
+                                    a!save(local!show, true),
+                                    a!save(local!intentoDescarga, true),
+
+                                  },
+                                  style: "SOLID",
+                                  color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_34909",
+                                  size: "SMALL",
+                                  submit: false,
+                                  showWhen: true,
+                                  loadingIndicator: true,
+                                  /*Agregado para  descarga asincrona*/
+                                  disabled: if(and(local!intentoDescarga,local!mensajeRespuesta="Incompleto"),true,false),
+                                ),
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "CERRAR",
+                                  style: "OUTLINE",
+                                  color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                  saveInto: {
+                                    #"SYSTEM_SYSRULES_startProcess"(
+                                      processModel: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_205077",
+                                      processParameters: { taskId: ri!taskId }
+                                    ),
+                                    a!save(local!showPopWarning, true)
+                                  },
+                                  size: "SMALL"
+                                )
+                              },
+                              align: "START",
+
+                            )
+                          }
+                        ),
+
+                      },
+                      marginAbove: "EVEN_LESS",
+                      marginBelow: "NONE",
+                      spacing: "DENSE",
+                      showWhen: and(
+                        not(local!showWhen),
+                        not(local!showComentarios),
+                        not(local!showWhenRecal),
+                        not(local!showPopWarning),
+                        not(local!vistaConformarMovimientos),
+                        not(local!vistaRechazarMovimientos),
+                        not(local!vistaHistorialComentarios),
+                        not(local!vistaActualizar),
+                        not(local!vistaCerrar)
+                      )
+                    ),
+                    /*a!buttonArrayLayout(*/
+                    /*marginAbove: "LESS",*/
+                    /*marginBelow: "EVEN_LESS",*/
+                    /*buttons: {*/
+                    /*a!buttonWidget(*/
+                    /*label: "Confirmar Movimientos",*/
+                    /*value: 1,*/
+                    /*submit: true,*/
+                    /*saveInto: { ri!option, a!save(ri!validation, true) },*/
+                    /*confirmHeader: "¿Confirma Movimientos?",*/
+                    /*confirmButtonLabel: "Sí",*/
+                    /*cancelButtonLabel: "No",*/
+                    /*style: "SOLID",*/
+                    /*color: cons!NCI_Cons_COLOR_AZUL_CLARO,*/
+                    /*size: "SMALL"*/
+                    /*),*/
+                    /*a!buttonWidget(*/
+                    /*label: "Rechazar Movimientos",*/
+                    /*style: "SOLID",*/
+                    /*value: 2,*/
+                    /*submit: false,*/
+                    /*saveInto: {*/
+                    /*ri!option,*/
+                    /*a!save(local!showWhen, true),*/
+                    /*a!save(ri!validation, false)*/
+                    /*},*/
+                    /*color: cons!NCI_Cons_COLOR_AZUL_CLARO,*/
+                    /*showWhen: if(*/
+                    /*or(*/
+                    /*ri!archivo.subproceso.id = 9,*/
+                    /*ri!archivo.subproceso.id = 105,*/
+                    /*                      */
+                    /*),*/
+                    /*false,*/
+                    /*true*/
+                    /*),*/
+                    /*size: "SMALL"*/
+                    /*),*/
+                    /*a!buttonWidget(*/
+                    /*label: "Recálculo de Movimientos",*/
+                    /*value: 3,*/
+                    /*saveInto: {*/
+                    /*ri!option,*/
+                    /*a!save(local!showWhenRecal, true),*/
+                    /*                    */
+                    /*},*/
+                    /*confirmHeader: "¿Confirma el recálculo?",*/
+                    /*confirmButtonLabel: "Sí",*/
+                    /*cancelButtonLabel: "No",*/
+                    /*style: "SOLID",*/
+                    /*color: cons!NCI_Cons_COLOR_AZUL_CLARO,*/
+                    /*size: "SMALL"*/
+                    /*),*/
+                    /*a!buttonWidget(*/
+                    /*label: "Historial de Comentarios",*/
+                    /*value: 4,*/
+                    /*saveInto: {*/
+                    /*ri!option,*/
+                    /*a!save(local!showComentarios, true)*/
+                    /*},*/
+                    /*style: "SOLID",*/
+                    /*showWhen: if(*/
+                    /*cons!NCI_OPER_CONS_ROLES_ACTIVE,*/
+                    /*a!isUserMemberOfGroup(*/
+                    /*loggedInUser(),*/
+                    /*rule!NCI_OPER_DEC_PermisosButtons(*/
+                    /*task: "CONSULTAR COMENTARIOS",*/
+                    /*Proceso: "RECAUDACION"*/
+                    /*)*/
+                    /*),*/
+                    /*true*/
+                    /*),*/
+                    /*color: cons!NCI_Cons_COLOR_AZUL_CLARO,*/
+                    /*size: "SMALL"*/
+                    /*),*/
+                    /*a!buttonWidget(*/
+                    /*label: "Actualizar",*/
+                    /*value: true,*/
+                    /*saveInto: {*/
+                    /*a!startProcess(*/
+                    /*processModel: cons!NCI_OPER_ACTUALIZAR_DATA_CONF_MOVS_PM,*/
+                    /*processParameters: {*/
+                    /*folio: ri!archivo.folio,*/
+                    /*idSubetapa_in: cons!PIMF_ID_CAT_SUBETAPA_GENERARMOVIMIENTOS*/
+                    /*},*/
+                    /*onSuccess: {*/
+                    /*a!save(*/
+                    /*ri!detalleMovimientos,*/
+                    /*a!map(*/
+                    /*totalRegistros: fv!processInfo.pv.registerTotal,*/
+                    /*registrosCumplieron: fv!processInfo.pv.complyRegisterNum,*/
+                    /*registrosNoCumplieron: fv!processInfo.pv.notComplyRegisterNum*/
+                    /*)*/
+                    /*),*/
+                    /*a!save(*/
+                    /*ri!analisisMovimientos,*/
+                    /*fv!processInfo.pv.analisisMovs*/
+                    /*)*/
+                    /*},*/
+                    /*onError: false*/
+                    /*),*/
+                    /*                    */
+                    /*},*/
+                    /*style: "SOLID",*/
+                    /*color: cons!NCI_Cons_COLOR_AZUL_CLARO,*/
+                    /*size: "SMALL"*/
+                    /*),*/
+                    /*                */
+                    /*}*/
+                    /*),*/
+                    /*a!columnsLayout(*/
+                    /*columns: {*/
+                    /*a!columnLayout(*/
+                    /*width: "NARROW",*/
+                    /*contents: {*/
+                    /*a!billboardLayout(*/
+                    /*marginAbove: "EVEN_LESS",*/
+                    /*backgroundColor: "#FFFFFF",*/
+                    /*height: "EXTRA_SHORT",*/
+                    /*overlay: a!columnOverlay(*/
+                    /*width: "NARROW",*/
+                    /*style: "LIGHT",*/
+                    /*padding: "NONE",*/
+                    /*alignVertical: "TOP",*/
+                    /*position: "START",*/
+                    /*contents: a!cardLayout(*/
+                    /*showBorder: false,*/
+                    /*showShadow: false,*/
+                    /*style: cons!NCI_Cons_COLOR_AZUL_CLARO,*/
+                    /*padding: "EVEN_LESS",*/
+                    /*marginAbove: "NONE",*/
+                    /*marginBelow: "NONE",*/
+                    /*contents: a!richTextDisplayField(*/
+                    /*preventWrapping: true,*/
+                    /*align: "CENTER",*/
+                    /*marginAbove: "NONE",*/
+                    /*marginBelow: "NONE",*/
+                    /*value: {*/
+                    /*a!richTextItem(*/
+                    /*text: upper("EXPORTAR A EXCEL"),*/
+                    /*color: "STANDARD",*/
+                    /*style: "STRONG"*/
+                    /*)*/
+                    /*}*/
+                    /*),*/
+                    /*link: a!documentDownloadLink(document: todocument(ri!idExcel), )*/
+                    /*),*/
+                    /*                        */
+                    /*)*/
+                    /*),*/
+                    /*                    */
+                    /*},*/
+                    /*                  */
+                    /*),*/
+                    /*a!columnLayout(*/
+                    /*width: "NARROW",*/
+                    /*contents: {*/
+                    /*a!billboardLayout(
+                      marginAbove: "EVEN_LESS",
+                      backgroundColor: "#FFFFFF",
+                      height: "EXTRA_SHORT",
+                      overlay: a!columnOverlay(
+                        position: "START",
+                        width: "NARROW",
+                        style: "LIGHT",
+                        padding: "NONE",
+                        alignVertical: "TOP",
+                        contents: a!cardLayout(
+                          showBorder: false,
+                          showShadow: false,
+                          style: cons!NCI_Cons_COLOR_AZUL_CLARO,
+                          padding: "EVEN_LESS",
+                          marginAbove: "NONE",
+                          marginBelow: "NONE",
+                          contents: a!richTextDisplayField(
+                            preventWrapping: true,
+                            align: "CENTER",
+                            marginAbove: "NONE",
+                            marginBelow: "NONE",
+                            value: {
+                              a!richTextItem(
+                                text: upper("CERRAR"),
+                                color: "STANDARD",
+                                style: "STRONG"
+                              )
+                            }
+                          ),
+                          link: a!safeLink(
+                            uri: cons!NCI_SITES_URLS_TXT,
+                            openLinkIn: "SAME_TAB"
+                          ),
+                        )
+                      )
+                    ),*/
+                    /*a!buttonLayout(*/
+                    /*secondaryButtons: a!buttonWidget(*/
+                    /*label: "CERRAR",*/
+                    /*style: "SOLID",*/
+                    /*color: cons!NCI_Cons_COLOR_AZUL_CLARO,*/
+                    /*saveInto: { a!save(local!showPopWarning, true) }*/
+                    /*)*/
+                    /*)*/
+                    /*},*/
+                    /*                  */
+                    /*),*/
+                    /*                */
+                    /*},*/
+                    /*spacing: "DENSE"*/
+                    /*)*/
+
+                  }
+                ),
+                /*rule!NCI_PantallaDeAviso(*/
+                /*header_txt: cons!NCI_POOL_MSG_FOR_TASKS_TXT_LIST[1],*/
+                /*message_txt: cons!NCI_POOL_MSG_FOR_TASKS_TXT_LIST[2],*/
+                /*showWhen: local!showPopWarning*/
+                /*),*/
+
+              },
+              showWhen: and(
+                not(local!showWhen),
+                not(local!showComentarios),
+                not(local!showWhenRecal),
+                not(local!showPopWarning),
+                not(local!vistaConformarMovimientos),
+                not(local!vistaRechazarMovimientos),
+                not(local!vistaHistorialComentarios),
+                not(local!vistaActualizar),
+                not(local!vistaCerrar),
+                not(local!popUp_Recalcular)
+              )
+            ),
+            #"SYSTEM_SYSRULES_columnLayout"(
+              contents: {
+                #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_69718"(
+                  folio: ri!archivo.folio,
+                  archivo: ri!archivo,
+                  startTime: ri!startTime
+                ),
+                #"SYSTEM_SYSRULES_columnsLayout"(
+                  columns: #"SYSTEM_SYSRULES_columnLayout"(
+                    contents: #"SYSTEM_SYSRULES_cardLayout"(
+                      contents: {
+                        #"SYSTEM_SYSRULES_cardLayout"(
+                          contents: {},
+                          height: "EXTRA_SHORT",
+                          style: "NONE",
+                          showBorder: false,
+                          padding: "NONE",
+                          marginAbove: "NONE",
+                          marginBelow: "NONE"
+                        ),
+                        #"SYSTEM_SYSRULES_cardLayout"(
+                          contents: {},
+                          height: "EXTRA_SHORT",
+                          style: "NONE",
+                          padding: "NONE",
+                          marginAbove: "NONE",
+                          marginBelow: "NONE"
+                        ),
+                        #"SYSTEM_SYSRULES_documentViewerField"(
+                          document: local!document,
+                          showWhen: local!viewer,
+                          height: "SHORT"
+                        ),
+
+                      },
+                      height: "EXTRA_SHORT",
+                      style: "TRANSPARENT",
+                      showBorder: false,
+                      padding: "NONE",
+                      showWhen: local!showDocViewer
+                    ),
+                    width: "WIDE_PLUS"
+                  )
+                )
+              },
+              width: "MEDIUM",
+              /*showWhen: and(*/
+              /*local!showColumn,*/
+              /*                */
+              /*not(local!showWhen),*/
+              /*not(local!showComentarios),*/
+              /*not(local!showWhenRecal),*/
+              /*not(local!showPopWarning),*/
+              /*not(local!vistaConformarMovimientos),*/
+              /*not(local!vistaRechazarMovimientos),*/
+              /*not(local!vistaHistorialComentarios),*/
+              /*not(local!vistaActualizar),*/
+              /*not(local!vistaCerrar),*/
+              /*not(local!popUp_Recalcular)*/
+              /*)*/
+
+            )
+          }
+        )
+      },
+      showWhen: and(
+        not(local!AceptBitacora),
+        not(local!showExport)
+      )
+    ),
+    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+      contents: {
+        #"_a-0000ee45-8509-8000-9bb1-011c48011c48_330902"(
+          idDocument: ri!idExcel,
+          showPopup: local!showExport
+        )
+      }
+    ),
+
+  }
+)</definition>
+        <namedTypedValue>
+            <name>option</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>archivo</name>
+            <type>
+                <name>PIMF_ARCHIVO_OB</name>
+                <namespace>urn:com:appian:types:PIMF</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>detalleMovimientos</name>
+            <type>
+                <name>Map</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>analisisMovimientos</name>
+            <type>
+                <name>Map</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>comentarios_txt</name>
+            <description>Guarda comentarios al rechazar un folio</description>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>idExcel</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>fechaGenMovs</name>
+            <type>
+                <name>date</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>validation</name>
+            <type>
+                <name>boolean</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>valorAccion</name>
+            <type>
+                <name>Map</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>flagSubsecuente</name>
+            <type>
+                <name>boolean</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>valorAccionNueva</name>
+            <type>
+                <name>Map</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>taskId</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>startTime</name>
+            <type>
+                <name>dateTime</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>request</name>
+            <type>
+                <name>PIMF_FLUJO_SERVICIOS</name>
+                <namespace>urn:com:appian:types:PIMF</namespace>
+            </type>
+        </namedTypedValue>
+        <preferredEditor>interface</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+        <isCustom>false</isCustom>
+    </interface>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <typedValue>
+        <type>
+            <name>RuleTestConfig?list</name>
+            <namespace>http://www.appian.com/ae/types/2009</namespace>
+        </type>
+        <value>
+            <el>
+                <a:name/>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" xsi:type="xsd:int"/>
+                    <a:nameRef>option</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">'type!{urn:com:appian:types:PIMF}PIMF_ARCHIVO_OB'('identificador': 0, 'folio': "202509041347053010", 'nombre': "PREFT.DP.P01534.F241113.DISPAF.C108.DAT", 'estatus': 'type!{urn:com:appian:types:PIMF}PIMF_CATALOGO_OB'('descripcion': "EN EJECUCI" &amp; fn!char(211) &amp; "N", 'id': 1), 'tamanio': 0, 'proceso': 'type!{urn:com:appian:types:PIMF}PIMF_CATALOGO_OB'('valor': "RECAUDACI" &amp; fn!char(211) &amp; "N", 'descripcion': "RECAUDACI" &amp; fn!char(211) &amp; "N", 'id': 7), 'subproceso': 'type!{urn:com:appian:types:PIMF}PIMF_CATALOGO_OB'('valor': "SUBSECUENTE INFONAVIT: ", 'descripcion': "SUBSECUENTE INFONAVIT", 'id': 9), 'fechaRecepcion': fn!datetime(2024, 11, 15, 21, 16, 49, 80), 'fechaUltimoEstatus': fn!datetime(2024, 11, 15, 21, 20, 43, 630), 'fechaEnvio': fn!datetime(2024, 11, 15, 21, 16, 49, 80), 'fechaLiquidacion': fn!datetime(2024, 11, 15, 21, 20, 43, 630), 'emailUsuario': "mitaforesop@profuturo.com.mx", 'nombreArchSinExtension': "SUBSECUENTES INFONAVIT", 'usuarioCreacion': "AppianAdministrator", 'usuarioActualizacion': "AppianAdministrator", 'fechaActualizacion': fn!datetime(2024, 11, 15, 21, 20, 43, 630), 'valorAivSub': "3.81946")</a:value>
+                    <a:nameRef>archivo</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">a!map(totalRegistros: 481, registrosCumplieron: 481, registrosNoCumplieron: 0)</a:value>
+                    <a:nameRef>detalleMovimientos</a:nameRef>
+                    <a:id>3</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">#"cefdd441-7704-4c3d-b4df-0adfac239e9d"(
+  folioNumbers: "202509301420586477"
+).result.body</a:value>
+                    <a:nameRef>analisisMovimientos</a:nameRef>
+                    <a:id>4</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:string"/>
+                    <a:nameRef>comentarios_txt</a:nameRef>
+                    <a:id>5</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:int">19653</a:value>
+                    <a:nameRef>idExcel</a:nameRef>
+                    <a:id>6</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" xsi:type="xsd:date"/>
+                    <a:nameRef>fechaGenMovs</a:nameRef>
+                    <a:id>7</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" xsi:type="xsd:boolean"/>
+                    <a:nameRef>validation</a:nameRef>
+                    <a:id>8</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>valorAccion</a:nameRef>
+                    <a:id>9</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:boolean">false</a:value>
+                    <a:nameRef>flagSubsecuente</a:nameRef>
+                    <a:id>10</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>valorAccionNueva</a:nameRef>
+                    <a:id>11</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" xsi:type="xsd:int"/>
+                    <a:nameRef>taskId</a:nameRef>
+                    <a:id>12</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" xsi:type="xsd:dateTime"/>
+                    <a:nameRef>startTime</a:nameRef>
+                    <a:id>13</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">'type!{urn:com:appian:types:PIMF}PIMF_FLUJO_SERVICIOS'(
+  folio: "202509041347053010",
+  idInstancia: 65465417,
+  idEtapa: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_13633",
+  idResultado: 0,
+  idEstatus: 32,
+  idSubetapa: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_13878",
+  idSubproceso: 120,
+  usuario: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_18089"().user
+)</a:value>
+                    <a:nameRef>request</a:nameRef>
+                    <a:id>14</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+            </el>
+        </value>
+    </typedValue>
+    <history>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_22221"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_103678"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_104670"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_105456"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_108293"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_109610"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_109712"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_110035"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_110139"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_110361"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_110467"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_110714"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_111251"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_111724"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_112049"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_112201"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_112407"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_112648"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_113144"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_113670"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_113964"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_114233"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_115039"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_117962"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_152895"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_168721"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_171294"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_172295"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_173724"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_175126"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_176358"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_177805"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_179909"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_192813"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_195129"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_197748"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_199485"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_199903"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_201018"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_206432"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_208269"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_214707"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_241885"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_249045"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_256007"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_257881"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_307178"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_309580"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_312966"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_314712"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_316349"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_317264"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_318148"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_318470"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_319304"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_321812"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_328871"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_330087"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_331100"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_337977"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_339457"/>
+        <historyInfo versionUuid="_a-0000ee77-5807-8000-9bb7-011c48011c48_369716"/>
+        <historyInfo versionUuid="_a-0000ee7f-40c0-8000-9bb9-011c48011c48_380455"/>
+        <historyInfo versionUuid="_a-0000ee7f-40c0-8000-9bb9-011c48011c48_383356"/>
+        <historyInfo versionUuid="_a-0000ee8d-fa8b-8000-9bbb-011c48011c48_392885"/>
+        <historyInfo versionUuid="_a-0000ee8d-fa8b-8000-9bbb-011c48011c48_399505"/>
+        <historyInfo versionUuid="_a-0000eea9-b7c8-8000-9bbd-011c48011c48_403793"/>
+        <historyInfo versionUuid="_a-0000eea9-b7c8-8000-9bbd-011c48011c48_406475"/>
+        <historyInfo versionUuid="_a-0000eea9-b7c8-8000-9bbd-011c48011c48_406942"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_411905"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_412740"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_414103"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_420667"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_425251"/>
+        <historyInfo versionUuid="_a-0000eeff-85fb-8000-9bc1-011c48011c48_495326"/>
+        <historyInfo versionUuid="_a-0000eeff-85fb-8000-9bc1-011c48011c48_500575"/>
+        <historyInfo versionUuid="_a-0000ef3e-0841-8000-9bc3-011c48011c48_506208"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_524851"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_592292"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_600668"/>
+    </history>
+</contentHaul>
