@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000ef47-4270-8000-9bc5-011c48011c48_581927</versionUuid>
+    <outboundIntegration>
+        <name>NTP_ConsultaCifrasArchivoResp</name>
+        <uuid>c965ae0b-8fa5-4f18-8522-61bd67e3a11a</uuid>
+        <description>Servicio que se utiliza para consultar las cifras del archivo de respuesta generado</description>
+        <parentUuid>_a-0000eeb4-c217-8000-9bbf-011c48011c48_430843</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition></definition>
+        <namedTypedValue>
+            <name>folioNumber</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>processId</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>subprocessId</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <metadataExpr></metadataExpr>
+        <preferredEditor>legacy</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+        <sharedConfigParameters>
+            <a:Dictionary xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <url xsi:type="xsd:string"/>
+                <isInheritedUrlOptionSelected xsi:type="xsd:boolean">true</isInheritedUrlOptionSelected>
+                <relativePath xsi:type="xsd:string">/response-file</relativePath>
+                <authType xsi:type="xsd:string">None</authType>
+                <authDetails xsi:type="xsd:string"/>
+            </a:Dictionary>
+        </sharedConfigParameters>
+        <configParameters>
+            <a:Dictionary xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <contentType xsi:type="xsd:string"/>
+                <automaticallyConvert xsi:type="xsd:boolean">true</automaticallyConvert>
+                <shouldReceiveDocuments xsi:type="xsd:boolean">false</shouldReceiveDocuments>
+                <jsonSchema xsi:nil="true" xsi:type="a:NestedChoice?list"/>
+                <receiveFolderConfig xsi:type="a:Dictionary">
+                    <asExpr xsi:type="xsd:boolean">false</asExpr>
+                    <saveDocOption xsi:type="xsd:int">0</saveDocOption>
+                    <value xsi:type="a:Variant?list"/>
+                </receiveFolderConfig>
+                <bodyParseType xsi:type="xsd:string">application/json+19.3</bodyParseType>
+                <parameters xsi:type="a:NameValue?list">
+                    <item>
+                        <a:name>folioNumber</a:name>
+                        <a:value xsi:type="a:Expression">ri!folioNumber</a:value>
+                    </item>
+                    <item>
+                        <a:name>processId</a:name>
+                        <a:value xsi:type="a:Expression">ri!processId</a:value>
+                    </item>
+                    <item>
+                        <a:name>subprocessId</a:name>
+                        <a:value xsi:type="a:Expression">ri!subprocessId</a:value>
+                    </item>
+                </parameters>
+                <removeNullOrEmptyJsonFields xsi:type="xsd:boolean">true</removeNullOrEmptyJsonFields>
+                <method xsi:type="xsd:string">GET</method>
+                <headers xsi:type="a:NameValue?list">
+                    <item>
+                        <a:name>Authorization</a:name>
+                        <a:value xsi:type="a:Expression">#"_a-0000eccb-293d-8000-9ba8-011c48011c48_169990"()</a:value>
+                    </item>
+                </headers>
+                <excludeNullHeaders xsi:type="xsd:boolean">true</excludeNullHeaders>
+                <documentConfig xsi:type="xsd:string"/>
+                <excludeNullParams xsi:type="xsd:boolean">true</excludeNullParams>
+                <featureVersion xsi:type="xsd:int">1</featureVersion>
+                <timeout xsi:type="xsd:int">300</timeout>
+                <body xsi:type="xsd:string"/>
+                <flattenedJsonSchema xsi:nil="true" xsi:type="a:Text?list"/>
+            </a:Dictionary>
+        </configParameters>
+        <isWrite>false</isWrite>
+        <integrationType>system.http</integrationType>
+        <connectedSystemUuid>_a-0000ed69-baa7-8000-9bad-011c48011c48_272392</connectedSystemUuid>
+        <isConnectedSystemConnectionOptionSelected>true</isConnectedSystemConnectionOptionSelected>
+        <integrationOutputs>
+            <a:Dictionary xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <outputs xsi:type="a:IntegrationOutput?list"/>
+            </a:Dictionary>
+        </integrationOutputs>
+        <isRequestResponseLoggingEnabled>true</isRequestResponseLoggingEnabled>
+    </outboundIntegration>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <typedValue>
+        <type>
+            <name>RuleTestConfig?list</name>
+            <namespace>http://www.appian.com/ae/types/2009</namespace>
+        </type>
+        <value>
+            <el>
+                <a:name/>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>folioNumber</a:nameRef>
+                    <a:id/>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>processId</a:nameRef>
+                    <a:id/>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>subprocessId</a:nameRef>
+                    <a:id/>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+            </el>
+        </value>
+    </typedValue>
+    <history>
+        <historyInfo versionUuid="_a-0000ee8d-fa8b-8000-9bbb-011c48011c48_386320"/>
+        <historyInfo versionUuid="_a-0000eea9-b7c8-8000-9bbd-011c48011c48_403026"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_411567"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_430871"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_581927"/>
+    </history>
+</contentHaul>

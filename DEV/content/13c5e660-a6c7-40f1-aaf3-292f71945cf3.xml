@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000ef47-4270-8000-9bc5-011c48011c48_581844</versionUuid>
+    <outboundIntegration>
+        <name>NCI_getApigeeToken</name>
+        <uuid>13c5e660-a6c7-40f1-aaf3-292f71945cf3</uuid>
+        <description>[IN] Get the access token</description>
+        <parentUuid>_a-0000eeb4-c217-8000-9bbf-011c48011c48_432215</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition></definition>
+        <metadataExpr></metadataExpr>
+        <preferredEditor>legacy</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+        <sharedConfigParameters>
+            <a:Dictionary xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <url xsi:type="xsd:string"/>
+                <isInheritedUrlOptionSelected xsi:type="xsd:boolean">true</isInheritedUrlOptionSelected>
+                <relativePath xsi:type="xsd:string">/oauth2/token</relativePath>
+                <authType xsi:type="xsd:string">None</authType>
+                <authDetails xsi:type="xsd:string"/>
+            </a:Dictionary>
+        </sharedConfigParameters>
+        <configParameters>
+            <a:Dictionary xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <contentType xsi:type="xsd:string">application/x-www-form-urlencoded</contentType>
+                <automaticallyConvert xsi:type="xsd:boolean">true</automaticallyConvert>
+                <shouldReceiveDocuments xsi:type="xsd:boolean">false</shouldReceiveDocuments>
+                <jsonSchema xsi:nil="true" xsi:type="a:NestedChoice?list"/>
+                <receiveFolderConfig xsi:type="a:Dictionary">
+                    <asExpr xsi:type="xsd:boolean">false</asExpr>
+                    <saveDocOption xsi:type="xsd:int">0</saveDocOption>
+                    <value xsi:type="a:Variant?list"/>
+                </receiveFolderConfig>
+                <bodyParseType xsi:type="xsd:string">application/json+19.3</bodyParseType>
+                <parameters xsi:type="a:NameValue?list"/>
+                <removeNullOrEmptyJsonFields xsi:type="xsd:boolean">true</removeNullOrEmptyJsonFields>
+                <method xsi:type="xsd:string">POST</method>
+                <headers xsi:type="a:NameValue?list">
+                    <item>
+                        <a:name>Content-Type</a:name>
+                        <a:value xsi:type="xsd:string">application/x-www-form-urlencoded</a:value>
+                    </item>
+                </headers>
+                <excludeNullHeaders xsi:type="xsd:boolean">true</excludeNullHeaders>
+                <documentConfig xsi:type="xsd:string"/>
+                <excludeNullParams xsi:type="xsd:boolean">true</excludeNullParams>
+                <featureVersion xsi:type="xsd:int">1</featureVersion>
+                <timeout xsi:type="xsd:int">300</timeout>
+                <body xsi:type="a:Expression">mid(
+  urlwithparameters(
+    "/",
+    "grant_type",
+    "client_credentials"
+  ),
+  3,
+  10000
+)</body>
+                <flattenedJsonSchema xsi:nil="true" xsi:type="a:Text?list"/>
+            </a:Dictionary>
+        </configParameters>
+        <isWrite>false</isWrite>
+        <integrationType>system.http</integrationType>
+        <connectedSystemUuid>_a-0000eeb4-c217-8000-9bbf-011c48011c48_421564</connectedSystemUuid>
+        <isConnectedSystemConnectionOptionSelected>true</isConnectedSystemConnectionOptionSelected>
+        <integrationOutputs>
+            <a:Dictionary xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <outputs xsi:type="a:IntegrationOutput?list"/>
+            </a:Dictionary>
+        </integrationOutputs>
+        <isRequestResponseLoggingEnabled>true</isRequestResponseLoggingEnabled>
+    </outboundIntegration>
+    <roleMap public="true">
+        <role inherit="false" allowForAll="false" name="readers">
+            <users/>
+            <groups>
+                <groupUuid>be4b9914-4354-4d2b-a4fc-350171068d9d</groupUuid>
+            </groups>
+        </role>
+        <role inherit="false" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="administrators">
+            <users/>
+            <groups>
+                <groupUuid>020d39fe-2b12-4b99-96eb-1e9567ab19a7</groupUuid>
+            </groups>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <history>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_169989"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_173201"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_421582"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_432252"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_581844"/>
+    </history>
+</contentHaul>

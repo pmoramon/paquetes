@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000ef47-4270-8000-9bc5-011c48011c48_595639</versionUuid>
+    <rule>
+        <name>NCI_OPER_getBitacoraInstaceRecordData</name>
+        <uuid>_a-0000ef47-4270-8000-9bc5-011c48011c48_595619</uuid>
+        <description>Retrieve data from the Bitacora Instance ID record to decide whether to write when downloading the document</description>
+        <parentUuid>_a-0000ec44-2ff4-8000-9ba5-011c48011c48_8061</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>/*Si ya se exportó anteriormente entonces regresa datos y no pasa por el write records en NCI_OPER Download Document IN*/
+
+  #"SYSTEM_SYSRULES_queryRecordType_v4"(
+    recordType: #"urn:appian:record-type:v1:2e875f37-a45c-4931-b48c-bcbd5e117aba",
+    fields: #"urn:appian:record-field:v1:2e875f37-a45c-4931-b48c-bcbd5e117aba/20753198-79b9-4c03-8b42-b86ee0882155",
+    filters: #"SYSTEM_SYSRULES_queryLogicalExpression"(
+      operator: "AND",
+      filters: {
+        #"SYSTEM_SYSRULES_queryFilter"(
+          field: #"urn:appian:record-field:v1:2e875f37-a45c-4931-b48c-bcbd5e117aba/c6c64a7e-8d1d-491d-9ed8-b477f1266091",
+          operator: "=",
+          value: ri!instanceId_int
+        ),
+        #"SYSTEM_SYSRULES_queryFilter"(
+          field: #"urn:appian:record-field:v1:2e875f37-a45c-4931-b48c-bcbd5e117aba/8bce9c32-2735-40a4-ba7a-ed2c56283223",
+          operator: "=",
+          value: "2"
+        )
+      }
+    ),
+    pagingInfo: #"SYSTEM_SYSRULES_pagingInfo"(1,1)
+  ).data
+</definition>
+        <namedTypedValue>
+            <name>instanceId_int</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <preferredEditor>legacy</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+    </rule>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <typedValue>
+        <type>
+            <name>RuleTestConfig?list</name>
+            <namespace>http://www.appian.com/ae/types/2009</namespace>
+        </type>
+        <value>
+            <el>
+                <a:name>HAPPY PATH</a:name>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">268516160</a:value>
+                    <a:nameRef>instanceId_int</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+                <a:isDefault>true</a:isDefault>
+            </el>
+        </value>
+    </typedValue>
+    <history>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_595639"/>
+    </history>
+</contentHaul>

@@ -1,0 +1,2037 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000ef47-4270-8000-9bc5-011c48011c48_601779</versionUuid>
+    <interface>
+        <name>NCI_OPER_RevisionCifrasControl</name>
+        <uuid>_a-0000ec60-cceb-8000-9ba6-011c48011c48_64046</uuid>
+        <description>Pantalla de Revisión de Cifras Control</description>
+        <parentUuid>_a-0000ec44-2ff4-8000-9ba5-011c48011c48_7493</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>a!localVariables(
+  local!sumarizadas: index(ri!sumarizadas, "body", {}),
+  local!vivienda2: index(ri!vivienda, "body", {}),
+  local!totales: index(ri!totales, "body", {}),
+  local!docId_int,
+  local!intentoDescarga: false,
+  local!mensajeRespuesta: "",
+  local!nombreDocumento: "",
+  local!show:false,
+  local!vivienda:if(a!isNullOrEmpty(local!vivienda2),{totalWithCredit:0,totalWithoutCredit:0},local!vivienda2),
+  local!indexOrd: a!flatten(
+    wherecontains(
+      268,
+      tointeger(
+        index(
+          local!sumarizadas[1],
+          "contributionRelease",
+          "contributionRelease",
+          "id",
+          0
+        )
+      )
+    )
+  ),
+  local!indexAcl: wherecontains(
+    269,
+    tointeger(
+      index(
+        local!sumarizadas[1],
+        "contributionRelease",
+        "contributionRelease",
+        "id",
+        0
+      )
+    )
+  ),
+  local!ordinarias: index(
+    local!sumarizadas,
+    "contributionRelease",
+    "contributionRelease",
+    "summarizedNumber",
+    "summarizedNumber",
+    local!indexOrd,
+    {}
+  ),
+  local!aclaraciones: index(
+    local!sumarizadas,
+    "contributionRelease",
+    "contributionRelease",
+    "summarizedNumber",
+    "summarizedNumber",
+    local!indexAcl,
+    {}
+  ),
+  local!idLiberacion: tointeger(
+    index(
+      local!sumarizadas,
+      "contributionRelease",
+      "contributionRelease",
+      "id",
+      0
+    )
+  ),
+  local!cleanVivienda: #"SYSTEM_SYSRULES_forEach"(
+    items: index(
+      local!vivienda,
+      "housingAmounts",
+      "housingAmounts",
+      {}
+    ),
+    expression: if(
+      todecimal(fv!item.amountTotal) &lt;&gt; 0,
+      fv!item,
+      {}
+    )
+  ),
+  local!showCalcMovs: false,
+  local!showGenerarArchivo:false,
+  local!showInstanceDetail: true,
+  local!showPopWarning: false,
+  local!reloadBrands: false,
+  local!brandsCoexistence: a!refreshVariable(
+    value: #"1a05f799-cf19-4ce1-90d5-aaf772921e48"(
+      folioNumber: index(ri!archivo, "folio", null),
+      brandStatus: 0,
+      page: 1,
+      limit: 10
+    ).result.headers,
+    refreshOnVarChange: local!reloadBrands
+  ),
+  /*local!brandsCoexistence: {
+    Date: today()
+    totalrecords: 10
+  },*/
+  local!messageCoexistence,
+  local!activeMarcas: false,
+  local!vistaModalRechazarFolio: false,
+  local!existBitacora: 
+  if(a!isNullOrEmpty(ri!request),1,#"SYSTEM_SYSRULES_queryRecordType_v2"(
+    recordType: #"urn:appian:record-type:v1:2e875f37-a45c-4931-b48c-bcbd5e117aba",
+    filters: #"SYSTEM_SYSRULES_queryFilter"(
+      field: #"urn:appian:record-field:v1:2e875f37-a45c-4931-b48c-bcbd5e117aba/c6c64a7e-8d1d-491d-9ed8-b477f1266091",
+      operator: "=",
+      value: tointeger(ri!request.idInstancia)
+    ),
+    pagingInfo: #"SYSTEM_SYSRULES_pagingInfo"(startIndex: 1, batchSize: 1)
+  ).data[#"urn:appian:record-field:v1:2e875f37-a45c-4931-b48c-bcbd5e117aba/c6c64a7e-8d1d-491d-9ed8-b477f1266091"]),
+  local!AceptBitacora: if(
+    a!isNullOrEmpty(local!existBitacora),
+    true,
+    false
+  ),
+  local!flagExportarCuentas: false,
+  local!consultaDoc:a!refreshVariable(
+    value: if(
+      and(local!intentoDescarga,local!mensajeRespuesta="Incompleto"),
+      #"f74c3fea-f7cf-4af7-8537-3a66751225ec"(
+        folio: index(ri!archivo, "folio", null),
+        /*IMPORTANTE CAMBIAR A LA OPCION DE LA DESCARAGA*/
+        option: 7,
+        idInstancia: index(ri!request, "idInstancia", null),
+      ),
+      null
+    ),
+    refreshInterval: 0.5
+  ),
+  {
+    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+      contents: {
+        #"SYSTEM_SYSRULES_columnsLayout"(
+          columns: {
+            #"SYSTEM_SYSRULES_columnLayout"(),
+            #"SYSTEM_SYSRULES_columnLayout"(
+              contents: {
+                #"SYSTEM_SYSRULES_boxLayout"(
+                  label: "Notificacion",
+                  contents: {
+                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                      labelPosition: "COLLAPSED",
+                      value: {
+                        "Al ",
+                        #"SYSTEM_SYSRULES_richTextItem_v1"(text: { "Aceptar " }, style: { "STRONG" }),
+                        #"_a-0000ee45-8509-8000-9bb1-011c48011c48_327358"
+                      }
+                    ),
+                    #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                      buttons: {
+                        #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                          label: "Aceptar",
+                          saveInto: {
+                            #"SYSTEM_SYSRULES_startProcess"(
+                              processModel: #"_a-0000ee45-8509-8000-9bb1-011c48011c48_325133",
+                              processParameters: {
+                                request: ri!request,
+                                usuarioCreacion: tostring(loggedInUser()),
+                                isBitacora:true
+                              }
+                            ),
+                            a!save(local!AceptBitacora, false)
+                          },
+                          loadingIndicator: true,
+                          submit: false,
+                          style: "SOLID",
+                          size: "SMALL",
+                          color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                        )
+                      },
+                      align: "END"
+                    )
+                  },
+                  style: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350",
+
+                )
+              }
+            ),
+            #"SYSTEM_SYSRULES_columnLayout"(),
+
+          }
+        )
+      },
+      showWhen: local!AceptBitacora
+    ),
+    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+      contents: {
+        #"SYSTEM_SYSRULES_sectionLayout_v1"(
+          contents: {
+            #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_90033"(
+              TituloTexto: "Revisión de Cifras Control",
+              showWhen: local!showInstanceDetail
+            ),
+            #"SYSTEM_SYSRULES_columnsLayout"(
+              columns: {
+                #"SYSTEM_SYSRULES_columnLayout"(
+                  contents: {
+                    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                      marginAbove: "EVEN_MORE",
+                      marginBelow: "EVEN_MORE"
+                    ),
+                    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                      contents: {
+                        #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_205413"(showWhen: local!showPopWarning),
+                        /*rule!NCI_PantallaDeAviso(*/
+                        /*header_txt:cons!NCI_POOL_MSG_FOR_TASKS_TXT_LIST[1],*/
+                        /*message_txt: cons!NCI_POOL_MSG_FOR_TASKS_TXT_LIST[2],*/
+                        /*showWhen: local!showPopWarning*/
+                        /*),*/
+                        #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_100254"(
+                          label_txt: "Ingrese la fecha para calcular movimientos",
+                          action_int: ri!action_int,
+                          showWhen: local!showCalcMovs,
+                          fechaGenMovs: ri!fechaGeneracionMovimientos,
+                          valorAccion: ri!valoresAccion,
+                          subproceso_int: ri!archivo.subproceso.id
+                        ),
+                        #"_a-0000ede3-bd80-8000-9baf-011c48011c48_288069"(
+                          label_txt: "Resumen de Archivo de Respuesta",
+                          action_int: ri!action_int,
+                          showWhen: local!showGenerarArchivo,
+                          folio_txt: ri!archivo.folio,
+                          processID_txt: ri!archivo.proceso.id,
+                          subprocessID_txt: ri!archivo.subproceso.id,
+                        ),
+                        #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                          contents: {
+                            #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_256027"(text_in: local!messageCoexistence, close: local!activeMarcas)
+                          },
+                          showWhen: if(local!activeMarcas, true, false)
+                        ),
+
+                        #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                          contents: {
+                            #"SYSTEM_SYSRULES_columnsLayout"(
+                              columns: {
+                                #"SYSTEM_SYSRULES_columnLayout"(),
+                                #"SYSTEM_SYSRULES_columnLayout"(
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_boxLayout"(
+                                      label:"Rechazar Folio",
+                                      contents: {
+                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                          labelPosition: "COLLAPSED",
+                                          value: {
+                                            "¿",
+                                            #"SYSTEM_SYSRULES_richTextItem_v1"(text: { "Confirma" }, style: { "STRONG" }),
+                                            " el rechazo de folio?"
+                                          }
+                                        ),
+
+                                        #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                                          buttons: {
+                                            #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                              label: "Aceptar",
+                                              saveInto: {
+                                                a!save(ri!action_int, 2),
+                                                a!save(local!vistaModalRechazarFolio, false),
+                                              },
+                                              submit: true,
+                                              style: "SOLID",
+                                              color:#"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                            ),
+                                            #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                              label: "Cancelar",
+                                              saveInto: {
+                                                a!save(local!vistaModalRechazarFolio, false)
+                                              },
+                                              style: "OUTLINE",
+                                              color:#"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                            )
+                                          },
+                                          align: "END"
+                                        )
+                                      },
+                                      style: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350",
+
+                                    )
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_columnLayout"(),
+                              }
+                            )
+                          },
+                          showWhen: local!vistaModalRechazarFolio
+                        )
+                      }
+                    )
+                  },
+                  showWhen: or(
+                    local!showPopWarning,
+                    local!showCalcMovs,
+                    local!showGenerarArchivo,
+                    local!activeMarcas,
+                    local!vistaModalRechazarFolio
+                  )
+                ),
+                #"SYSTEM_SYSRULES_columnLayout"(
+                  contents: {
+                    #"SYSTEM_SYSRULES_boxLayout"(
+                      label: "Información de Cifras Control Generadas",
+                      contents: {
+                        #"SYSTEM_SYSRULES_cardLayout"(
+                          contents: {
+                            #"SYSTEM_SYSRULES_columnsLayout"(
+                              columns: {
+                                #"SYSTEM_SYSRULES_columnLayout"(
+                                  contents: {
+                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                    value: {
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: "Folio:  ",
+                                        color: "#000000",
+                                        style: "STRONG"
+                                      ),
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(text: ri!archivo.folio, color: "#000000")
+                                    },
+                                    marginBelow: "NONE"
+                                  ),                                  
+                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                    value: {
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: "Nombre:  ",
+                                        color: "#000000",
+                                        style: "STRONG"
+                                      ),
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: ri!archivo.nombreArchSinExtension,
+                                        color: "#000000"
+                                      )
+                                    },
+                                    marginBelow: "NONE"
+                                  ),
+                                  },
+                                  width: "2X"
+                                ),
+                                #"SYSTEM_SYSRULES_columnLayout"(
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                      value: {
+                                        #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                          text: "Proceso:  ",
+                                          color: "#000000",
+                                          style: "STRONG"
+                                        ),
+                                        #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                          text: ri!archivo.proceso.descripcion,
+                                          color: "#000000"
+                                        )
+                                      },
+                                      marginBelow: "NONE"
+                                    ),
+                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                      value: {
+                                        #"SYSTEM_SYSRULES_richTextItem_v1"(text: "Subproceso: ", style: "STRONG"),
+                                        #"SYSTEM_SYSRULES_richTextItem_v1"(text: ri!archivo.subproceso.descripcion)
+                                      },
+                                      marginBelow: "NONE"
+                                    ),
+                                    
+                                    
+                                    
+                                  
+                                  
+
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_columnLayout"(
+                                  contents: {
+                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                    value: {
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: "Estatus:  ",
+                                        color: "#000000",
+                                        style: "STRONG"
+                                      ),
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(text: "EN EJECUCIÓN", color: "#000000")
+                                    },
+                                    marginBelow: "NONE"
+                                  ),
+                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                    value: {
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: "Fecha Recepción:  ",
+                                        color: "#000000",
+                                        style: "STRONG"
+                                      ),
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: text(ri!archivo.fechaRecepcion, "dd/MM/yyyy"),
+                                        color: "#000000"
+                                      )
+                                    },
+                                    marginBelow: "NONE"
+                                  )
+                                  }
+                                ),
+                                #"SYSTEM_SYSRULES_columnLayout"(
+                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                    value: {
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: "Fecha Último Estatus:  ",
+                                        style: "STRONG"
+                                      ),
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: text(
+                                          ri!archivo.fechaUltimoEstatus,
+                                          "dd/MM/yyyy"
+                                        )
+                                      )
+                                    },
+                                    marginBelow: "NONE"
+                                  )
+                                )
+                                
+                                
+                              },
+                              marginBelow: "NONE"
+                            ),
+                          },
+                          shape: "ROUNDED",
+                          showBorder: true
+                        )
+
+                      },
+                      style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                      showBorder: false
+
+                    ),
+                    #"SYSTEM_SYSRULES_boxLayout"(
+                      label: "Reporte Registros",
+                      contents: {
+                        a!localVariables(
+                          #"SYSTEM_SYSRULES_columnsLayout"(
+                            columns: {
+                              #"SYSTEM_SYSRULES_columnLayout"(
+                                contents: #"SYSTEM_SYSRULES_gridLayout"(
+                                  headerCells: {
+                                    #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Siefore", align: "CENTER"),
+                                    #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Registros", align: "CENTER")
+                                  },
+                                  rows: {
+                                    #"SYSTEM_SYSRULES_gridRowLayout"(
+                                      contents: {
+                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                            text: "Total Registros",
+                                            color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                          ),
+                                          align: "CENTER"
+                                        ),
+                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                          
+                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                            
+                                            color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                            text: sum(
+                                              index(
+                                                local!totales,
+                                                "registers",
+                                                "acceptedRegisters",
+                                                0
+                                              )
+                                            )
+                                          ),
+                                          align: "CENTER"
+                                        )
+                                      }
+                                    ),
+                                    #"SYSTEM_SYSRULES_forEach"(
+                                      items: index(local!totales, "registers", {}),
+                                      expression: #"SYSTEM_SYSRULES_gridRowLayout"(
+                                        contents: {
+                                          #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                            value: #"SYSTEM_SYSRULES_richTextItem_v1"(text: fv!item.sieforeDescription),
+                                            align:"CENTER",
+                                          ),
+                                          #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                            value: #"SYSTEM_SYSRULES_richTextItem_v1"(text: fv!item.acceptedRegisters),
+                                            align:"CENTER",
+                                          )
+                                        }
+                                      )
+                                    ),
+                                    #"SYSTEM_SYSRULES_gridRowLayout"(
+                                      contents: {
+                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(text: "Rechazados"),
+                                          align:"CENTER"
+                                        ),
+                                        #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                          align:"CENTER",
+                                          value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                            text: sum(
+                                              index(
+                                                local!totales,
+                                                "registers",
+                                                "rejectedRegisters",
+                                                0
+                                              )
+                                            )
+                                          )
+                                        )
+                                      }
+                                    )
+                                  }
+                                ),
+                                width: "MEDIUM"
+                              )
+                            }
+
+                          )
+                        )
+
+                      },
+                      style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                      showBorder: false
+
+                    ),
+                    #"SYSTEM_SYSRULES_boxLayout"(
+                      label: "Cifras Control",
+                      contents: {
+                        a!localVariables(
+                          local!selectedTab: 1,
+                          {
+                            #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                              buttons: {
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "Ordinarias",
+                                  saveInto: if(
+                                    local!selectedTab = 1,
+                                    {},
+                                    a!save(local!selectedTab, 1)
+                                  ),
+                                  size: "SMALL",
+                                  width: "MINIMIZE",
+                                  style: if(local!selectedTab = 1, "SOLID", "SOLID"),
+                                  color: if(
+                                    local!selectedTab = 1,
+                                    #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350",
+                                    #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_8114"
+                                  )
+                                ),
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "Aclaraciones",
+                                  saveInto: if(
+                                    local!selectedTab = 2,
+                                    {},
+                                    a!save(local!selectedTab, 2)
+                                  ),
+                                  size: "SMALL",
+                                  width: "MINIMIZE",
+                                  style: if(local!selectedTab = 2, "SOLID", "SOLID"),
+                                  color: if(
+                                    local!selectedTab = 2,
+                                    #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350",
+                                    #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_8114"
+                                  )
+                                ),
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "Vivienda",
+                                  saveInto: if(
+                                    local!selectedTab = 3,
+                                    {},
+                                    a!save(local!selectedTab, 3)
+                                  ),
+                                  size: "SMALL",
+                                  width: "MINIMIZE",
+                                  style: if(local!selectedTab = 3, "SOLID", "SOLID"),
+                                  color: if(
+                                    local!selectedTab = 3,
+                                    #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350",
+                                    #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_8114"
+                                  )
+                                ),
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "Totales",
+                                  saveInto: if(
+                                    local!selectedTab = 4,
+                                    {},
+                                    a!save(local!selectedTab, 4)
+                                  ),
+                                  size: "SMALL",
+                                  width: "MINIMIZE",
+                                  style: if(local!selectedTab = 4, "SOLID", "SOLID"),
+                                  color: if(
+                                    local!selectedTab = 4,
+                                    #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_236350",
+                                    #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_8114"
+                                  )
+                                )
+                              }
+                            ),
+                            if(
+                              local!selectedTab = 1,
+                              {
+                                #"SYSTEM_SYSRULES_boxLayout"(
+                                  label: "Cifras Control Ordinarias",
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                                      label: "",
+                                      contents: {
+                                        if(
+                                          contains(local!idLiberacion, 268),
+                                          #"SYSTEM_SYSRULES_gridLayout"(
+                                            emptyGridMessage: "No se encontraron registros",
+                                            headerCells: {
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                                label: "Tipo de Aportación",
+                                                align: "CENTER"
+                                              ),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Aceptado", align: "CENTER"),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Rechazado", align: "CENTER"),
+                                              #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Archivo", align: "CENTER")
+                                            },
+                                            rows: {
+                                              #"SYSTEM_SYSRULES_forEach"(
+                                                items: index(local!ordinarias, 1, {}),
+                                                expression: #"SYSTEM_SYSRULES_gridRowLayout"(
+                                                  contents: {
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: fv!item.amountConcept.description,
+                                                      align: "CENTER"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(
+                                                          nStr: fixed(fv!item.acceptedAmount, 2, true)
+                                                        ).formatearNumero2,
+                                                        color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+
+                                                      ),
+                                                      align: "RIGHT"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(
+                                                          nStr: fixed(fv!item.rejectedAmount, 2, true)
+                                                        ).formatearNumero2,
+                                                        color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+
+                                                      ),
+                                                      align: "RIGHT"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(nStr: fixed(fv!item.amountTotal, 2, true)).formatearNumero2,
+                                                        color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+
+                                                      ),
+                                                      align: "RIGHT"
+                                                    )
+                                                  }
+                                                )
+                                              ),
+                                              #"SYSTEM_SYSRULES_gridRowLayout"(
+                                                contents: {
+                                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                    value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                      text: "Total",
+                                                      color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                                      style: "PLAIN"
+                                                    ),
+                                                    align: "CENTER"
+
+                                                  ),
+                                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                    value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                      text: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(
+                                                        nStr: fixed(
+                                                          sum(
+                                                            todecimal(local!ordinarias.acceptedAmount)
+                                                          ),
+                                                          2,
+                                                          true
+                                                        )
+                                                      ).formatearNumero2,
+                                                      color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                                      style: "STRONG"
+                                                    ),
+                                                    align: "RIGHT"
+                                                  ),
+                                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                    value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                      text: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(
+                                                        nStr: fixed(
+                                                          sum(
+                                                            todecimal(local!ordinarias.rejectedAmount)
+                                                          ),
+                                                          2,
+                                                          true
+                                                        )
+                                                      ).formatearNumero2,
+                                                      color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                                      style: "STRONG"
+                                                    ),
+                                                    align: "RIGHT"
+                                                  ),
+                                                  #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                    value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                      text: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(
+                                                        nStr: fixed(
+                                                          sum(
+                                                            todecimal(local!ordinarias.amountTotal)
+                                                          ),
+                                                          2,
+                                                          true
+                                                        )
+                                                      ).formatearNumero2,
+                                                      color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                                      style: "STRONG"
+                                                    ),
+                                                    align: "RIGHT"
+                                                  )
+                                                }
+                                              )
+                                            },
+                                            borderStyle: "STANDARD"
+                                          ),
+                                          #"SYSTEM_SYSRULES_gridField_v2"(
+                                            emptyGridMessage: "No se encontraron registros",
+                                            data: a!map(),
+                                            columns: {
+                                              #"SYSTEM_SYSRULES_gridColumn"(
+                                                label: "Tipo de Aportación",
+                                                value: "...",
+                                                align: "CENTER"
+                                              ),
+                                              #"SYSTEM_SYSRULES_gridColumn"(
+                                                label: "Total Aceptado",
+                                                value: "...",
+                                                align: "CENTER"
+                                              ),
+                                              #"SYSTEM_SYSRULES_gridColumn"(
+                                                label: "Total Rechazado",
+                                                value: "...",
+                                                align: "CENTER"
+                                              ),
+                                              #"SYSTEM_SYSRULES_gridColumn"(
+                                                label: "Total Archivo",
+                                                value: "...",
+                                                align: "CENTER"
+                                              )
+                                            },
+                                            borderStyle: "STANDARD"
+                                          )
+                                        )
+
+                                      }
+
+                                    ),
+                                    #"_a-0000eccb-293d-8000-9ba8-011c48011c48_135159"(
+                                      folio: ri!archivo.folio,
+                                      fileId: ri!archivo.identificador,
+                                      idLib: 268
+                                    )
+                                  },
+                                  style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                  showBorder: false
+
+                                )
+                              },
+                              {}
+                            ),
+                            if(
+                              local!selectedTab = 2,
+                              {
+                                #"SYSTEM_SYSRULES_boxLayout"(
+                                  label: "Cifras Control Aclaración",
+                                  contents: {
+                                    if(
+                                      contains(local!idLiberacion, 269),
+                                      #"SYSTEM_SYSRULES_gridLayout"(
+                                        emptyGridMessage: "No se encontraron registros",
+                                        headerCells: {
+                                          #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                            label: "Tipo de Aportación",
+                                            align: "CENTER"
+                                          ),
+                                          #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Aceptado", align: "CENTER"),
+                                          #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Rechazado", align: "CENTER"),
+                                          #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Archivo", align: "CENTER")
+                                        },
+                                        rows: {
+                                          #"SYSTEM_SYSRULES_forEach"(
+                                            items: index(local!aclaraciones, 1, {}),
+                                            expression: #"SYSTEM_SYSRULES_gridRowLayout"(
+                                              contents: {
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: fv!item.amountConcept.description,
+                                                    color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+
+                                                  ),
+                                                  align: "CENTER"
+                                                ),
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(
+                                                      nStr: fixed(fv!item.acceptedAmount, 2, true)
+                                                    ).formatearNumero2,
+                                                    color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                                    /*style: "STRONG"*/
+                                                  ),
+                                                  align: "RIGHT"
+                                                ),
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(
+                                                      nStr: fixed(fv!item.rejectedAmount, 2, true)
+                                                    ).formatearNumero2,
+                                                    color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                                    /*style: "STRONG"*/
+                                                  ),
+                                                  align: "RIGHT"
+                                                ),
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(nStr: fixed(fv!item.amountTotal, 2, true)).formatearNumero2,
+                                                    color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                                    /*style: "STRONG"*/
+                                                  ),
+                                                  align: "RIGHT"
+                                                )
+                                              }
+                                            )
+                                          ),
+                                          #"SYSTEM_SYSRULES_gridRowLayout"(
+                                            contents: {
+                                              #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                value: #"SYSTEM_SYSRULES_richTextItem_v1"(text: "Total"),
+                                                align: "CENTER"
+                                              ),
+                                              #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                  text: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(
+                                                    nStr: fixed(
+                                                      sum(
+                                                        todecimal(local!aclaraciones.acceptedAmount)
+                                                      ),
+                                                      2,
+                                                      true
+                                                    )
+                                                  ).formatearNumero2,
+                                                  style: "STRONG"
+                                                ),
+                                                align: "RIGHT"
+                                              ),
+                                              #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                  text: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(
+                                                    nStr: fixed(
+                                                      sum(
+                                                        todecimal(local!aclaraciones.rejectedAmount)
+                                                      ),
+                                                      2,
+                                                      true
+                                                    )
+                                                  ).formatearNumero2,
+                                                  style: "STRONG"
+                                                ),
+                                                align: "RIGHT"
+                                              ),
+                                              #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                  text: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_10856"(
+                                                    nStr: fixed(
+                                                      sum(
+                                                        todecimal(local!aclaraciones.amountTotal)
+                                                      ),
+                                                      2,
+                                                      true
+                                                    )
+                                                  ).formatearNumero2,
+                                                  style: "STRONG"
+                                                ),
+                                                align: "RIGHT"
+                                              )
+                                            }
+                                          )
+                                        },
+                                        borderStyle: "STANDARD"
+                                      ),
+                                      #"SYSTEM_SYSRULES_gridField_v2"(
+                                        emptyGridMessage: "No se encontraron registros",
+                                        data: a!map(),
+                                        columns: {
+                                          #"SYSTEM_SYSRULES_gridColumn"(
+                                            label: "Tipo de Aportacion",
+                                            value: "...",
+                                            align: "CENTER"
+                                          ),
+                                          #"SYSTEM_SYSRULES_gridColumn"(
+                                            label: "Total Aceptado",
+                                            value: "...",
+                                            align: "CENTER"
+                                          ),
+                                          #"SYSTEM_SYSRULES_gridColumn"(
+                                            label: "Total Rechazado",
+                                            value: "...",
+                                            align: "CENTER"
+                                          ),
+                                          #"SYSTEM_SYSRULES_gridColumn"(
+                                            label: "Total Archivo",
+                                            value: "...",
+                                            align: "CENTER"
+                                          )
+                                        },
+                                        borderStyle: "STANDARD"
+                                      )
+                                    ),
+                                    #"_a-0000eccb-293d-8000-9ba8-011c48011c48_135159"(
+                                      folio: ri!archivo.folio,
+                                      fileId: ri!archivo.identificador,
+                                      idLib: 269
+                                    )
+                                  },
+                                  style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                  showBorder: false
+                                )
+                              },
+                              {}
+                            ),
+                            if(
+                              local!selectedTab = 3,
+                              {
+                                #"SYSTEM_SYSRULES_boxLayout"(
+                                  label: "Cifras Control Vivienda",
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_gridLayout"(
+                                      emptyGridMessage: "No se encontraron registros",
+                                      headerCells: {
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                          label: "Tipo de Aportación",
+                                          align: "CENTER"
+                                        ),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                          label: "Crédito de Vivienda",
+                                          align: "CENTER"
+                                        ),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                          label: "Aceptados Ordinarios",
+                                          align: "CENTER"
+                                        ),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(
+                                          label: "Aceptados Aclaraciones",
+                                          align: "CENTER"
+                                        ),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Aceptado", align: "CENTER"),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Rechazado", align: "CENTER"),
+                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total Archivo", align: "CENTER")
+                                      },
+                                      rows: {
+                                        #"SYSTEM_SYSRULES_forEach"(
+                                          items: local!cleanVivienda,
+                                          expression: {
+                                            #"SYSTEM_SYSRULES_gridRowLayout"(
+                                              contents: {
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(text: fv!item.amountConcept.description),
+                                                  align: "CENTER"
+                                                ),
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: a!match(
+                                                      value: fv!item.credit,
+                                                      whenTrue: isnull(fv!value),
+                                                      then: "N/A",
+                                                      whenTrue: and(
+                                                        a!isNotNullOrEmpty(fv!value),
+                                                        fv!value = "1"
+                                                      ),
+                                                      then: "Con crédito vivienda",
+                                                      whenTrue: and(
+                                                        a!isNotNullOrEmpty(fv!value),
+                                                        fv!value = "0"
+                                                      ),
+                                                      then: "Sin crédito vivienda",
+                                                      default: ""
+                                                    ),
+                                                    color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                  ),
+                                                  align: "CENTER"
+                                                ),
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: fv!item.amountAcceptedOrd,
+                                                    color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                  ),
+                                                  align: "RIGHT"
+                                                ),
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: fv!item.amountAcceptedAclar,
+                                                    color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                  ),
+                                                  align: "RIGHT"
+                                                ),
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: a!defaultValue(
+                                                      value:  fv!item.amountAcceptedTotal,
+                                                      default: "0"
+                                                    ),
+                                                    color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                                    style: "STRONG"
+                                                  ),
+                                                  align: "RIGHT"
+                                                ),
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: a!defaultValue(
+                                                      value:  fv!item.rejectedAmount,
+                                                      default: "0"
+                                                    ),
+                                                    color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                                    style: "STRONG"
+                                                  ),
+                                                  align: "RIGHT"
+                                                ),
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: a!defaultValue(
+                                                      value:  fv!item.amountTotal,
+                                                      default: "0"
+                                                    ),
+                                                    color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375",
+                                                    style: "STRONG"
+                                                  ),
+                                                  align: "RIGHT"
+                                                )
+                                              }
+                                            )
+
+                                          }
+                                        )
+                                      }
+                                    )
+                                  },
+                                  style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                  showBorder: false
+                                )
+                              },
+                              {}
+                            ),
+                            if(
+                              local!selectedTab = 4,
+                              {
+                                #"SYSTEM_SYSRULES_boxLayout"(
+                                  label: "Cifras Control Totales",
+                                  contents: {
+                                    #"SYSTEM_SYSRULES_boxLayout"(
+                                      label: "Ordinarias y Aclaraciones",
+                                      contents: {
+                                        #"SYSTEM_SYSRULES_gridLayout"(
+                                          headerCells: {
+                                            #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "SIEFORE", align: "CENTER"),
+                                            #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Ordinarias", align: "CENTER"),
+                                            #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Aclaraciones", align: "CENTER"),
+                                            #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Totales", align: "CENTER")
+                                          },
+                                          rows: {
+                                            #"SYSTEM_SYSRULES_forEach"(
+                                              items: index(
+                                                local!sumarizadas,
+                                                1,
+                                                "amountTotal",
+                                                "contributionReleaseTotal",
+                                                "contributionSieforeTotal",
+                                                {}
+                                              ),
+                                              expression: {
+                                                #"SYSTEM_SYSRULES_gridRowLayout"(
+                                                  contents: {
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: fv!item.siefore.description,
+                                                        color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                      ),
+                                                      align: "CENTER"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: if(
+                                                          a!isNotNullOrEmpty(fv!item.amountTotalOrd),
+                                                          "$" &amp; fv!item.amountTotalOrd,
+                                                          "$0.00"
+                                                        )/*"$" &amp; fixed(fv!item.amountTotalOrd, 2, false)*/,
+                                                        color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+
+                                                      ),
+                                                      align: "RIGHT"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: if(
+                                                          a!isNotNullOrEmpty(fv!item.amountTotalAcl),
+                                                          "$" &amp; fv!item.amountTotalAcl,
+                                                          "$0.00"
+                                                        ),
+                                                        color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                      ),
+                                                      align: "RIGHT"
+                                                    ),
+                                                    #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                      value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                        text: if(
+                                                          a!isNotNullOrEmpty(fv!item.acceptedAmount),
+                                                          "$" &amp; fv!item.acceptedAmount,
+                                                          "$0.00"
+                                                        ),
+                                                        color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                      ),
+                                                      align: "RIGHT"
+                                                    )
+                                                  }
+                                                )
+                                              }
+                                            ),
+                                            #"SYSTEM_SYSRULES_gridRowLayout"(
+                                              contents: {
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(text: "Total Aceptados"),
+                                                  align: "CENTER"
+                                                ),
+                                                /*acept ord*/
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: "$" &amp; a!defaultValue(
+                                                      value: index(
+                                                        local!sumarizadas,
+                                                        1,
+                                                        "contributionRelease",
+                                                        "contributionRelease",
+                                                        local!indexOrd,
+                                                        "numberTotal",
+                                                        "acceptedAmount",
+                                                        null
+                                                      ),
+                                                      default: "0.00"
+                                                    ),
+                                                    style: "STRONG"
+                                                  ),
+                                                  
+                                                  align: "RIGHT"
+                                                ),
+                                                /*acept acl*/
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: "$" &amp; a!defaultValue(
+                                                      value: index(
+                                                        local!sumarizadas,
+                                                        1,
+                                                        "contributionRelease",
+                                                        "contributionRelease",
+                                                        local!indexAcl,
+                                                        "numberTotal",
+                                                        "acceptedAmount",
+                                                        null
+                                                      ),
+                                                      default: "0.00"
+                                                    ),
+                                                    style: "STRONG"
+                                                  ),
+                                                  align: "RIGHT"
+                                                ),
+                                                /*tot acept*/
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: {
+                                                      "$" &amp; a!defaultValue(
+                                                        value: index(
+                                                          local!sumarizadas,
+                                                          "amountTotal",
+                                                          "acceptedAmount",
+                                                          null
+                                                        ),
+                                                        default: "0.00"
+                                                      )
+                                                    },
+                                                    style: "STRONG"
+                                                  ),
+                                                  align: "RIGHT"
+                                                )
+                                              }
+                                            ),
+                                            #"SYSTEM_SYSRULES_gridRowLayout"(
+                                              contents: {
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(text: "Total Rechazados"),
+                                                  align: "CENTER"
+                                                ),
+                                                /*rej ord*/
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: "$" &amp; a!defaultValue(
+                                                      value: index(
+                                                        local!sumarizadas,
+                                                        1,
+                                                        "contributionRelease",
+                                                        "contributionRelease",
+                                                        local!indexOrd,
+                                                        "numberTotal",
+                                                        "rejectedAmount",
+                                                        null
+                                                      ),
+                                                      default: "0.00"
+                                                    ),
+                                                    style: "STRONG"
+                                                  ),
+                                                  align: "RIGHT"
+                                                ),
+                                                /*rej acl*/
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: "$" &amp; a!defaultValue(
+                                                      value: index(
+                                                        local!sumarizadas,
+                                                        1,
+                                                        "contributionRelease",
+                                                        "contributionRelease",
+                                                        local!indexAcl,
+                                                        "numberTotal",
+                                                        "rejectedAmount",
+                                                        null
+                                                      ),
+                                                      default: "0.00"
+                                                    ),
+                                                    style: "STRONG"
+                                                  ),
+                                                  align: "RIGHT"
+                                                ),
+                                                /*rej tot*/
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: "$" &amp; a!defaultValue(
+                                                      value: index(
+                                                        local!sumarizadas,
+                                                        "amountTotal",
+                                                        "rejectedAmount",
+                                                        null
+                                                      ),
+                                                      default: "0.00"
+                                                    ),
+                                                    style: "STRONG"
+                                                  ),
+                                                  align: "RIGHT"
+                                                )
+                                              }
+                                            ),
+                                            #"SYSTEM_SYSRULES_gridRowLayout"(
+                                              contents: {
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(text: "Total Archivo"),
+                                                  align: "CENTER"
+                                                ),
+                                                /*arch ord*/
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: "$" &amp; a!defaultValue(
+                                                      value: index(
+                                                        local!sumarizadas,
+                                                        1,
+                                                        "contributionRelease",
+                                                        "contributionRelease",
+                                                        local!indexOrd,
+                                                        "numberTotal",
+                                                        "amountTotal",
+                                                        null
+                                                      ),
+                                                      default: "0.00"
+                                                    ),
+                                                    style: "STRONG"
+                                                  ),
+                                                  align: "RIGHT"
+                                                ),
+                                                /*acept acl*/
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: "$" &amp; a!defaultValue(
+                                                      value: index(
+                                                        local!sumarizadas,
+                                                        1,
+                                                        "contributionRelease",
+                                                        "contributionRelease",
+                                                        local!indexAcl,
+                                                        "numberTotal",
+                                                        "amountTotal",
+                                                        null
+                                                      ),
+                                                      default: "0.00"
+                                                    ),
+                                                    style: "STRONG"
+                                                  ),
+                                                  align: "RIGHT"
+                                                ),
+                                                /*tot acept*/
+                                                #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                  value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                    text: "$" &amp; a!defaultValue(
+                                                      value: index(
+                                                        local!sumarizadas,
+                                                        "amountTotal",
+                                                        "amountTotal",
+                                                        null
+                                                      ),
+                                                      default: "0.00"
+                                                    ),
+                                                    style: "STRONG"
+                                                  ),
+                                                  align: "RIGHT"
+                                                )
+                                              }
+                                            )
+                                          }
+                                        ),
+                                        #"SYSTEM_SYSRULES_boxLayout"(
+                                          label: "Vivienda",
+                                          contents: {
+                                            #"SYSTEM_SYSRULES_columnsLayout"(
+                                              columns: {
+                                                #"SYSTEM_SYSRULES_columnLayout"(
+                                                  contents: {
+                                                    #"SYSTEM_SYSRULES_gridLayout"(
+                                                      headerCells: {
+                                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total con Crédito", align: "CENTER"),
+                                                        #"SYSTEM_SYSRULES_gridLayoutHeaderCell"(label: "Total sin Crédito", align: "CENTER")
+                                                      },
+                                                      rows: {
+                                                        #"SYSTEM_SYSRULES_gridRowLayout"(
+                                                          contents: {
+                                                            #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                              value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                                text: local!vivienda.totalWithCredit,
+                                                                color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                              ),
+                                                              align: "RIGHT"
+                                                            ),
+                                                            #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                                              value: #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                                                text: local!vivienda.totalWithoutCredit,
+                                                                color: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_232375"
+                                                              ),
+                                                              align: "RIGHT"
+                                                            )
+                                                          }
+                                                        )
+                                                      }
+                                                    )
+                                                  }
+                                                ),
+                                                #"SYSTEM_SYSRULES_columnLayout"()
+                                              }
+                                            ),
+                                            #"SYSTEM_SYSRULES_columnsLayout"()
+                                          },
+                                          style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                          showBorder: false
+                                        )
+                                      },
+                                      style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                      showBorder: false
+                                    )
+                                  },
+                                  style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                  showBorder: false
+                                )
+                              },
+                              {}
+                            )
+                          }
+                        )
+
+                      },
+                      style: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                      padding: "NONE",
+                      showBorder: false
+                    ),
+                    /*Agregado para  descarga asincrona bloque*/
+                    #"d8c51b1b-47f4-494a-a360-e31b8c316406"(
+                      docId_int: local!docId_int,
+                      /*IMPORTANTE CAMBIAR A COMO ESTABA EN LA DESCARAGA*/
+                      nombre: concat(
+                        "Cifras_Control_",
+                        index(
+                          ri!archivo,
+                          "folio",
+                          null
+                        ),
+                        ".csv"
+                      ),
+                      mensajeRespuesta: local!mensajeRespuesta,
+                      intentoDescarga: local!intentoDescarga,
+                      consultaDoc: local!consultaDoc
+                    ),
+                    /*Agregado para  descarga asincrona bloque*/
+                    #"SYSTEM_SYSRULES_columnsLayout"(
+                      columns: {
+                        #"SYSTEM_SYSRULES_columnLayout"(
+                          contents: {
+                            #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                              buttons: {
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "Archivo de Respuesta", 
+                                  size: "SMALL",
+                                  style: "SOLID",
+                                  color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                  submit: false,
+                                  value:true,
+                                  saveInto:{
+                                    a!save(local!showGenerarArchivo,save!value),
+                                  },
+                                  disabled:if(or(ri!archivo.subproceso.id==118,ri!archivo.subproceso.id==120,ri!archivo.subproceso.id==122),false,true),
+                                ),
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "GENERACIÓN DE MOVIMIENTOS",
+                                  value: true,
+                                  saveInto: {
+
+                                    /* Consulta cuentas no marcadas */
+                                    a!save(
+                                      local!brandsCoexistence,
+                                      #"1a05f799-cf19-4ce1-90d5-aaf772921e48"(
+                                        folioNumber: index(ri!archivo, "folio", null),
+                                        brandStatus: 0,
+                                        page: 1,
+                                        limit: 10
+                                      ).result.headers
+                                    ),
+                                    a!save(
+                                      local!reloadBrands,
+                                      not(local!reloadBrands)
+                                    ),
+
+                                    /* Evaluación principal */
+                                    if(
+                                      and(
+                                        a!isNotNullOrEmpty(
+                                          index(local!brandsCoexistence, "totalrecords", null)
+                                        ),
+                                        toInteger(index(local!brandsCoexistence, "totalrecords", 0)) &gt; 0
+                                      ),
+
+                                      /* Hay cuentas */
+                                      if(
+                                        and(
+                                          toInteger(index(local!brandsCoexistence, "totalrecords", 0)) &gt; 0,
+                                          toInteger(index(local!brandsCoexistence, "totalrecords", 0)) &lt; 150
+                                        ),
+
+                                        /* CASO 1 y 2 */
+                                        {
+                                          a!save(
+                                            local!messageCoexistence,
+                                            "Debe exportar el reporte porque existe(n) " &amp;
+                                            index(local!brandsCoexistence, "totalrecords", 0) &amp;
+                                            " cuenta(s) individual(es) no marcada(s)."
+                                          ),
+
+                                          a!save(
+                                            local!activeMarcas,
+                                            not(local!activeMarcas)
+                                          ),
+                                          a!save(
+                                            local!flagExportarCuentas,
+                                            true
+                                          )
+                                          
+                                        },
+
+                                        /* CASO &gt; 150 */
+                                        if(
+                                          toInteger(index(local!brandsCoexistence, "totalrecords", 0)) &gt; 150,
+                                          {
+                                            a!save(
+                                              local!messageCoexistence,
+                                              "Se ha excedido la cantidad de cuentas individuales no marcadas por lo que debe solicitar la información al área de Soporte a Producción."
+                                            ),
+                                            a!save(
+                                              local!activeMarcas,
+                                              not(local!activeMarcas)
+                                            )
+                                          },
+                                          {}
+                                        )
+                                      ),
+
+                                      /* CASO 0 registros */
+                                      a!save(local!showCalcMovs, save!value)
+                                    )
+                                  },
+                                  submit: false,
+                                  size: "SMALL",
+                                  style: "SOLID",
+                                  color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774",
+                                  loadingIndicator: true
+                                ),
+
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "Rechazar Folio",
+                                  saveInto: a!save(local!vistaModalRechazarFolio, true),
+                                  size: "SMALL",
+                                  style: "SOLID",
+                                  color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_34909",
+
+                                ),
+                                
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: if(and(local!intentoDescarga,local!mensajeRespuesta="Incompleto"),if(a!isNullOrEmpty(local!consultaDoc),"Descargando Excel","Documento Disponible"),"Exportar Excel"),
+                                  /*Agregado para  descarga asincrona*/
+                                  icon: if(and(local!intentoDescarga,local!mensajeRespuesta="Incompleto"),if(a!isNullOrEmpty(local!consultaDoc),"spinner-alt","file-export"),null),
+                                  value: true,
+                                  saveInto: {
+                                    a!save(local!docId_int, null),
+                                    #"SYSTEM_SYSRULES_startProcess3"(
+                                      processModel: #"_a-0000ee45-8509-8000-9bb1-011c48011c48_330655",
+                                      processParameters: {
+                                        /*Agregado para  descarga asincrona*/
+                                        idInstancia: ri!request.idInstancia,
+                                        user:loggedInUser(),
+                                        inputService:a!map(
+                                          /*Agregado para  descarga asincrona*/
+                                          folioRequerido: ri!archivo.folio,
+                                          folioNumber: ri!archivo.folio,
+                                          preNumbers: false
+                                        ),
+                                        option:7
+                                      },
+                                      isSynchronous: true,
+                                      onSuccess:{
+                                        a!save(
+                                          local!docId_int,
+                                          index(fv!processInfo.pv,"document",null)
+                                        ),
+                                        a!save(
+                                          local!mensajeRespuesta,
+                                          index(fv!processInfo.pv, "mensajeRespuesta", null),
+                                        ),
+                                        a!save(local!nombreDocumento, "Cifras_Control_")
+                                      },
+                                      /*Agregado para  descarga asincrona bloque*/
+                                      onIncomplete: {
+
+                                        a!save(
+                                          local!mensajeRespuesta,
+                                          "Incompleto",
+
+                                        )
+                                      }
+                                      /*Agregado para  descarga asincrona bloque*/
+                                    ),
+                                    a!save(local!show, true),
+                                    a!save(local!intentoDescarga, true),
+                                  },
+                                  style: "SOLID",
+                                  color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_34909",
+                                  size: "SMALL",
+                                  submit: false,
+                                  /*Agregado para  descarga asincrona*/
+                                  disabled: if(and(local!intentoDescarga,local!mensajeRespuesta="Incompleto"),true,false),
+                                  /*disabled: a!isNullOrEmpty(ri!selectedProcessId),*/
+                                  loadingIndicator: true,
+                                  showWhen: true
+                                ),
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "EXPORTAR CUENTAS DESMARCADAS",
+                                  value: true,
+                                  saveInto: {
+                                    a!save(local!docId_int, null),
+                                    #"SYSTEM_SYSRULES_startProcess3"(
+                                      processModel: #"_a-0000ee45-8509-8000-9bb1-011c48011c48_330655",
+                                      processParameters: {
+                                        user: loggedInUser(),
+                                        inputService: a!map(
+                                          lstFolios: ri!archivo.folio
+                                        ),
+                                        option: 23
+                                      },
+                                      isSynchronous: true,
+                                      onSuccess: {
+                                        a!save(
+                                          local!docId_int,
+                                          index(fv!processInfo.pv, "document", null)
+                                        ),
+                                        a!save(
+                                          local!mensajeRespuesta,
+                                          index(fv!processInfo.pv, "mensajeRespuesta", null)
+                                        ),
+                                        a!save(local!intentoDescarga, true),
+                                        a!save(local!nombreDocumento, "Cuentas_Desmarcadas_")
+                                      }
+                                    ),
+                                    a!save(local!show, true),
+                                    a!save(local!intentoDescarga, true),
+                                  },
+                                  style: "SOLID",
+                                  color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_34909",
+                                  size: "SMALL",
+                                  submit: false,
+                                  loadingIndicator: true,
+                                  showWhen: local!flagExportarCuentas
+                                ),
+                                #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                  label: "CERRAR",
+                                  saveInto: {
+                                    #"SYSTEM_SYSRULES_startProcess"(
+                                      processModel: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_205077",
+                                      processParameters: { taskId: ri!taskId }
+                                    ),
+                                    a!save(local!showPopWarning, true)
+                                  },
+                                  size: "SMALL",
+                                  style: "OUTLINE",
+                                  color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+
+                                )
+                              },
+                              align: "START",
+                              marginAbove: "LESS",
+                              marginBelow: "EVEN_LESS"
+                            )
+                          }
+                        )
+                      },
+                      spacing: "DENSE",
+                    ),
+                    /*no se ve*/
+                    #"SYSTEM_SYSRULES_sectionLayout_v1"(
+                      contents: {
+                        #"SYSTEM_SYSRULES_columnsLayout"(
+                          columns: {
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              contents: {
+                                #"SYSTEM_SYSRULES_cardLayout"(
+                                  contents: #"SYSTEM_SYSRULES_richTextDisplayField"(
+                                    value: {
+                                      #"SYSTEM_SYSRULES_richTextItem_v1"(
+                                        text: upper("Exportar Excel"),
+                                        color: "STANDARD",
+                                        size: "STANDARD",
+                                        style: "STRONG"
+                                      )
+                                    },
+                                    preventWrapping: true,
+                                    align: "CENTER",
+                                    marginAbove: "NONE",
+                                    marginBelow: "NONE"
+
+                                  ),
+                                  link: #"SYSTEM_SYSRULES_documentDownloadLink"(document: todocument(ri!idExcel)),
+                                  height: "AUTO",
+                                  showWhen: true,
+                                  style: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_7886",
+                                  padding: "LESS",
+                                  marginAbove: "NONE",
+                                  marginBelow: "NONE",
+                                  showBorder: false,
+                                  showShadow: false
+                                )
+                              },
+                              width: "3X"
+                            ),
+                            #"SYSTEM_SYSRULES_columnLayout"(
+                              contents: {
+                                #"SYSTEM_SYSRULES_ButtonArrayLayout"(
+                                  buttons: {
+                                    #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                      label: "Rechazar Folio",
+                                      value: 2,
+                                      saveInto: ri!action_int,
+                                      submit: true,
+                                      style: "SOLID",
+                                      color: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_7886",
+                                      /* Mensaje del pop-up */
+                                      confirmHeader: "Confirmación de Rechazo",
+                                      confirmMessage: "¿Estás seguro de que deseas rechazar este folio?",
+                                      confirmButtonLabel: "Sí",
+                                      cancelButtonLabel: "No"
+                                    ),
+                                    #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                      label: "GENERACIÓN DE MOVIMIENTOS",
+                                      value: true,
+                                      saveInto: a!save(local!showCalcMovs, save!value),
+                                      submit: false,
+                                      style: "SOLID",
+                                      color: #"_a-0000ec44-2ff4-8000-9ba5-011c48011c48_7886"
+
+                                    ),
+                                    #"SYSTEM_SYSRULES_buttonWidget_v1"(
+                                      label: "CERRAR",
+                                      saveInto: {
+                                        #"SYSTEM_SYSRULES_startProcess"(
+                                          processModel: #"_a-0000ecfb-6f0d-8000-9baa-011c48011c48_205077",
+                                          processParameters: { taskId: ri!taskId }
+                                        ),
+                                        a!save(local!showPopWarning, true)
+                                      },
+                                      style: "SOLID",
+                                      color: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_93774"
+                                    )
+                                  },
+                                  align: "CENTER"
+                                )
+                              },
+                              width: "7X"
+                            ),
+                            #"SYSTEM_SYSRULES_columnLayout"(width: "10X" )
+                          },
+                          spacing: "NONE",
+                          stackWhen: {
+                            "TABLET_PORTRAIT",
+                            "TABLET_LANDSCAPE",
+                            "DESKTOP_NARROW"
+                          }
+                        )
+                      },
+                      showWhen: false,
+                      dividerWeight: "THICK",
+                      marginAbove: "LESS"
+                    )
+                  },
+                  width: "10X",
+                  showWhen: and(
+                    not(or(local!showCalcMovs,local!showGenerarArchivo)),
+                    and(not(local!showPopWarning), not(local!activeMarcas),not(local!vistaModalRechazarFolio))
+                  )
+                ),
+                #"SYSTEM_SYSRULES_columnLayout"(
+                  contents: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_69718"(
+                    folio: ri!archivo.folio,
+                    archivo: ri!archivo,
+                    startTime: ri!startTime
+                  ),
+                  width: "NARROW_PLUS",
+                  showWhen: local!showInstanceDetail
+                )
+              }
+            )
+          }
+        )
+      },
+      showWhen: not(local!AceptBitacora)
+    ),
+}
+)</definition>
+        <namedTypedValue>
+            <name>archivo</name>
+            <type>
+                <name>PIMF_ARCHIVO_OB</name>
+                <namespace>urn:com:appian:types:PIMF</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>vivienda</name>
+            <type>
+                <name>Map</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>sumarizadas</name>
+            <type>
+                <name>Map</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>totales</name>
+            <type>
+                <name>Map</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>idExcel</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>action_int</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>startTime</name>
+            <type>
+                <name>dateTime</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>fechaGeneracionMovimientos</name>
+            <type>
+                <name>date</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>valoresAccion</name>
+            <type>
+                <name>Map</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>taskId</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>request</name>
+            <type>
+                <name>PIMF_FLUJO_SERVICIOS</name>
+                <namespace>urn:com:appian:types:PIMF</namespace>
+            </type>
+        </namedTypedValue>
+        <preferredEditor>interface</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+        <isCustom>false</isCustom>
+    </interface>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <typedValue>
+        <type>
+            <name>RuleTestConfig?list</name>
+            <namespace>http://www.appian.com/ae/types/2009</namespace>
+        </type>
+        <value>
+            <el>
+                <a:name/>
+                <a:description/>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">='type!{urn:com:appian:types:PIMF}PIMF_ARCHIVO_OB'('identificador': 63856, 'folio': "202601281153326723", 'nombre': "PREFT.DP.P01534.F240103.DISPAF.C211.DAT", 'estatus': 'type!{urn:com:appian:types:PIMF}PIMF_CATALOGO_OB'('descripcion': "REGISTRADO", 'id': 1), 'tamanio': 6607601, 'proceso': 'type!{urn:com:appian:types:PIMF}PIMF_CATALOGO_OB'('descripcion': "RECAUDACION", 'id': 7), 'subproceso': 'type!{urn:com:appian:types:PIMF}PIMF_CATALOGO_OB'('descripcion': "DISPERSION ORDINARIA IMSS", 'id': 8), 'fechaArchivo': fn!date(2024, 1, 3), 'fechaRecepcion': fn!date(2024, 10, 11), 'fechaUltimoEstatus': fn!datetime(2024, 10, 10, 21, 44, 5, 0), 'fechaEnvio': fn!date(2024, 10, 11), 'nombreArchSinExtension': "PREFT.DP.P01534.F240103.DISPAF.C211", 'usuarioCreacion': "MIT_SERVICES", 'fechaCreacion': fn!date(2024, 10, 11), 'usuarioActualizacion': "MIT_SERVICES", 'fechaActualizacion': fn!date(2024, 10, 11), 'origen': 'type!{urn:com:appian:types:PIMF}PIMF_CATALOGO_OB'('descripcion': "EN VALIDACION", 'id': 437), 'idOrigenDetalle': 0)</a:value>
+                    <a:nameRef>archivo</a:nameRef>
+                    <a:id>1</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">=#"13649d1b-36a8-4c34-96d6-a74f9be37d0c"(
+  folio:"202507212143442820",
+  fileId: "63856"
+).result</a:value>
+                    <a:nameRef>vivienda</a:nameRef>
+                    <a:id>2</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">=#"078adbee-2126-42e7-848b-18bb494853ca"(
+  folio: "202507212143442820",
+  fileId: "73069",
+  depositType: "268,269"
+).result</a:value>
+                    <a:nameRef>sumarizadas</a:nameRef>
+                    <a:id>3</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">=#"a354f02b-6f44-47c3-997b-55c4a1b0ca02"(
+  folio: "202507212143442820"
+).result</a:value>
+                    <a:nameRef>totales</a:nameRef>
+                    <a:id>4</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" xsi:type="xsd:int"/>
+                    <a:nameRef>idExcel</a:nameRef>
+                    <a:id>5</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" xsi:type="xsd:int"/>
+                    <a:nameRef>action_int</a:nameRef>
+                    <a:id>6</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" xsi:type="xsd:dateTime"/>
+                    <a:nameRef>startTime</a:nameRef>
+                    <a:id>7</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" xsi:type="xsd:date"/>
+                    <a:nameRef>fechaGeneracionMovimientos</a:nameRef>
+                    <a:id>8</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">null</a:value>
+                    <a:nameRef>valoresAccion</a:nameRef>
+                    <a:id>9</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" xsi:type="xsd:int"/>
+                    <a:nameRef>taskId</a:nameRef>
+                    <a:id>10</a:id>
+                </a:ruleInputTestConfigs>
+                <a:ruleInputTestConfigs>
+                    <a:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="a:Expression">'type!{urn:com:appian:types:PIMF}PIMF_FLUJO_SERVICIOS'(
+  folio: "202411281716539241",
+  idInstancia: 65465476,
+  idEtapa: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_13633",
+  idResultado: 0,
+  idEstatus: 32,
+  idSubetapa: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_13878",
+  idSubproceso: 120,
+  usuario: #"_a-0000ec60-cceb-8000-9ba6-011c48011c48_18089"().user
+)</a:value>
+                    <a:nameRef>request</a:nameRef>
+                    <a:id>11</a:id>
+                </a:ruleInputTestConfigs>
+                <a:assertions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+            </el>
+        </value>
+    </typedValue>
+    <history>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_65491"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_66123"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_71991"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_73097"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_76818"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_93760"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_97238"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_97633"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_99241"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_99474"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_100052"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_100633"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_101866"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_101969"/>
+        <historyInfo versionUuid="_a-0000ec60-cceb-8000-9ba6-011c48011c48_102120"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_109966"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_136004"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_140011"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_159482"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_159583"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_160752"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_165780"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_177552"/>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_179811"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_186638"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_189562"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_189723"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_192315"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_192613"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_195610"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_197647"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_200154"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_206274"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_207899"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_231062"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_233442"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_240212"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_240606"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_248321"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_250240"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_256342"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_258387"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_259663"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_260297"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_288703"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_288868"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_289149"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_290450"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_293844"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_294278"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_294773"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_295047"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_295767"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_298006"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_298470"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_319669"/>
+        <historyInfo versionUuid="_a-0000ede3-bd80-8000-9baf-011c48011c48_320861"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_327817"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_330279"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_337812"/>
+        <historyInfo versionUuid="_a-0000ee45-8509-8000-9bb1-011c48011c48_339032"/>
+        <historyInfo versionUuid="_a-0000ee60-29e2-8000-9bb3-011c48011c48_345180"/>
+        <historyInfo versionUuid="_a-0000ee60-29e2-8000-9bb3-011c48011c48_353246"/>
+        <historyInfo versionUuid="_a-0000ee6c-cc70-8000-9bb5-011c48011c48_360349"/>
+        <historyInfo versionUuid="_a-0000ee6c-cc70-8000-9bb5-011c48011c48_361343"/>
+        <historyInfo versionUuid="_a-0000ee77-5807-8000-9bb7-011c48011c48_363602"/>
+        <historyInfo versionUuid="_a-0000ee77-5807-8000-9bb7-011c48011c48_367948"/>
+        <historyInfo versionUuid="_a-0000ee7f-40c0-8000-9bb9-011c48011c48_371959"/>
+        <historyInfo versionUuid="_a-0000ee7f-40c0-8000-9bb9-011c48011c48_384438"/>
+        <historyInfo versionUuid="_a-0000ee8d-fa8b-8000-9bbb-011c48011c48_399227"/>
+        <historyInfo versionUuid="_a-0000eea9-b7c8-8000-9bbd-011c48011c48_408023"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_409627"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_411090"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_413168"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_422029"/>
+        <historyInfo versionUuid="_a-0000eeff-85fb-8000-9bc1-011c48011c48_494814"/>
+        <historyInfo versionUuid="_a-0000eeff-85fb-8000-9bc1-011c48011c48_500262"/>
+        <historyInfo versionUuid="_a-0000ef3e-0841-8000-9bc3-011c48011c48_505917"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_524356"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_531300"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_535038"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_535360"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_601779"/>
+    </history>
+</contentHaul>

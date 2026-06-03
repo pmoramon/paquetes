@@ -1,0 +1,30 @@
+[
+  {
+    "objectUuid": "0002ec53-b54c-8000-fa76-7f0000014e7a",
+    "designGuidanceKey": "sysrule.designGuidance.processModel.tooManyNodes",
+    "dismissed": true,
+    "instanceCount": 1,
+    "objectTypeName": "{http://www.appian.com/ae/types/2009}ProcessModel"
+  },
+  {
+    "objectUuid": "0002ec76-ffbe-8000-fcdf-7f0000014e7a",
+    "designGuidanceKey": "sysrule.designGuidance.processModel.tooManyNodes",
+    "dismissed": true,
+    "instanceCount": 1,
+    "objectTypeName": "{http://www.appian.com/ae/types/2009}ProcessModel"
+  },
+  {
+    "objectUuid": "0002ec76-ffbe-8000-fcdf-7f0000014e7a",
+    "designGuidanceKey": "sysrule.designGuidance.processModel.displayNameNotDynamic",
+    "dismissed": true,
+    "instanceCount": 2,
+    "objectTypeName": "{http://www.appian.com/ae/types/2009}ProcessModel"
+  },
+  {
+    "objectUuid": "0018ee6e-c67d-8000-217f-7f0000014e7a",
+    "designGuidanceKey": "sysrule.designGuidance.processModel.asynchronousSubprocess",
+    "dismissed": true,
+    "instanceCount": 1,
+    "objectTypeName": "{http://www.appian.com/ae/types/2009}ProcessModel"
+  }
+]

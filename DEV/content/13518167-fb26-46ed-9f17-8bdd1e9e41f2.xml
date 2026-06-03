@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000ef47-4270-8000-9bc5-011c48011c48_565343</versionUuid>
+    <decision>
+        <name>NCI_OPER_DEC_PermisosGroups</name>
+        <uuid>13518167-fb26-46ed-9f17-8bdd1e9e41f2</uuid>
+        <description>Cuando se le da un proceso de acreditacion, devuelve los grupos que tienen permiso para el mismo</description>
+        <parentUuid>_a-0000ec44-2ff4-8000-9ba5-011c48011c48_9491</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>fn!override_exception_appian_internal(fn!with(local!decisiondefinition: a!decisiondesigner_cache(uuid: "13518167-fb26-46ed-9f17-8bdd1e9e41f2",versionKey: "06ca4300-e55f-4288-bf2f-a97b3a14bb18",value: #"SYSTEM_SYSRULES_dd_dd"('hitPolicy': #"SYSTEM_SYSRULES_dd_dhp"("UNIQUE"), 'inputs': {#"SYSTEM_SYSRULES_dd_di"('name': "Process", 'type': 'type!{http://www.appian.com/ae/types/2009}Text', 'id': 1, 'restrictionType': #"SYSTEM_SYSRULES_dd_dirt"("LOOKUP"), 'restriction': #"SYSTEM_SYSRULES_dd_dirl"('allowedLabels': {"SUBSECUENTES FOVISSSTE", "DISPERSION ORDINARIA IMSS", "SUBSECUENTES INFONAVIT", "DEVOLUCIÓN DE PAGOS SIN JUSTIFICACIÓN LEGAL", "DISPERSION ACLARACIONES ESPECIALES", "DISPERSION GUBERNAMENTAL IMSS", "DISPERSION GUBERNAMENTAL ISSSTE", "DISPERSION INTERESES EN TRANSITO IMSS", "DISPERSION INTERESES EN TRANSITO ISSSTE", "DISPERSION ORDINARIA ISSSTE", "DESMARCA DE CRÉDITO DE VIVIENDA POR 43 BIS", "DEVOLUCIÓN DE EXCEDENTES POR T.A FOVISSSTE", "DEVOLUCIÓN DE SALDOS EXCEDENTES POR 43 BIS", "DEVOLUCIÓN DE SALDOS EXCEDENTES POR T.A A.G", "SOLICITUD DE DESMARCA FOVISSSTE", "SOLICITUD DE MARCA DE CUENTAS POR 43 BIS", "TRANSFERENCIA DE RECURSOS POR PORTABILIDAD", "TRANSFERENCIA POR ANUALIDAD GARANTIZADA", "TRANSFERENCIAS DE ACREDITADOS FOVISSSTE", "TRANSFERENCIAS DE ACREDITADOS INFONAVIT", "USO DE GARANTÍA POR 43 BIS"}, 'allowedValues': {"APORTACIONES SUBSECUENTES FOVISSSTE", "DISPERSION ORDINARIA IMSS", "SUBSECUENTES INFONAVIT", "DEVOLUCIÓN DE PAGOS SIN JUSTIFICACIÓN LEGAL", "DISPERSION ACLARACIONES ESPECIALES", "DISPERSION GUBERNAMENTAL IMSS", "DISPERSION GUBERNAMENTAL ISSSTE", "DISPERSION INTERESES EN TRANSITO IMSS", "DISPERSION INTERESES EN TRANSITO ISSSTE", "DISPERSION ORDINARIA ISSSTE", "DESMARCA DE CRÉDITO DE VIVIENDA POR 43 BIS", "DEVOLUCIÓN DE EXCEDENTES POR T.A FOVISSSTE", "DEVOLUCIÓN DE SALDOS EXCEDENTES POR 43 BIS", "DEVOLUCIÓN DE SALDOS EXCEDENTES POR T.A A.G", "SOLICITUD DE DESMARCA FOVISSSTE", "SOLICITUD DE MARCA DE CUENTAS POR 43 BIS", "TRANSFERENCIA DE RECURSOS POR PORTABILIDAD", "TRANSFERENCIA POR ANUALIDAD GARANTIZADA", "TRANSFERENCIAS DE ACREDITADOS FOVISSSTE", "TRANSFERENCIAS DE ACREDITADOS INFONAVIT", "USO DE GARANTÍA POR 43 BIS"})), #"SYSTEM_SYSRULES_dd_di"('name': "UserAction", 'type': 'type!{http://www.appian.com/ae/types/2009}Text', 'id': 3, 'restrictionType': #"SYSTEM_SYSRULES_dd_dirt"("LOOKUP"), 'restriction': #"SYSTEM_SYSRULES_dd_dirl"('allowedLabels': {}, 'allowedValues': {"ACREDITAR MOVIMIENTOS", "BUSQUEDA DE ARCHIVOS OPERATIVOS"}))}, 'outputs': {#"SYSTEM_SYSRULES_dd_do"('id': 1, 'name': "Groups", 'type': 'type!{http://www.appian.com/ae/types/2009}Group', 'restrictionType': #"SYSTEM_SYSRULES_dd_dort"("NONE"), 'returnListType': true)}, 'rules': {#"SYSTEM_SYSRULES_dd_dr"('id': 1, 'inputs': {#"SYSTEM_SYSRULES_dd_dri"('id': 1, 'decisionInputId': 1, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"DISPERSION ORDINARIA IMSS", "DEVOLUCIÓN DE PAGOS SIN JUSTIFICACIÓN LEGAL", "DISPERSION ACLARACIONES ESPECIALES", "DISPERSION GUBERNAMENTAL IMSS", "DISPERSION GUBERNAMENTAL ISSSTE", "DISPERSION INTERESES EN TRANSITO IMSS", "DISPERSION INTERESES EN TRANSITO ISSSTE", "DISPERSION ORDINARIA ISSSTE"})), #"SYSTEM_SYSRULES_dd_dri"('id': 9, 'decisionInputId': 3, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"ACREDITAR MOVIMIENTOS"}))}, 'outputs': {#"SYSTEM_SYSRULES_dd_dro"('id': 1, 'decisionOutputId': 1, 'value': {a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_232",defaultId:92), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_234",defaultId:93), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_238",defaultId:95), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_230",defaultId:91)})}), #"SYSTEM_SYSRULES_dd_dr"('id': 5, 'inputs': {#"SYSTEM_SYSRULES_dd_dri"('id': 10, 'decisionInputId': 1, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"DISPERSION ORDINARIA IMSS", "DEVOLUCIÓN DE PAGOS SIN JUSTIFICACIÓN LEGAL", "DISPERSION ACLARACIONES ESPECIALES", "DISPERSION GUBERNAMENTAL IMSS", "DISPERSION GUBERNAMENTAL ISSSTE", "DISPERSION INTERESES EN TRANSITO IMSS", "DISPERSION INTERESES EN TRANSITO ISSSTE", "DISPERSION ORDINARIA ISSSTE"})), #"SYSTEM_SYSRULES_dd_dri"('id': 11, 'decisionInputId': 3, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"BUSQUEDA DE ARCHIVOS OPERATIVOS"}))}, 'outputs': {#"SYSTEM_SYSRULES_dd_dro"('id': 5, 'decisionOutputId': 1, 'value': {a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_230",defaultId:91), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_232",defaultId:92), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_234",defaultId:93), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_238",defaultId:95), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_242",defaultId:97), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_252",defaultId:102)})}), #"SYSTEM_SYSRULES_dd_dr"('id': 6, 'inputs': {#"SYSTEM_SYSRULES_dd_dri"('id': 12, 'decisionInputId': 1, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"SUBSECUENTES INFONAVIT"})), #"SYSTEM_SYSRULES_dd_dri"('id': 13, 'decisionInputId': 3, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"ACREDITAR MOVIMIENTOS"}))}, 'outputs': {#"SYSTEM_SYSRULES_dd_dro"('id': 6, 'decisionOutputId': 1, 'value': {a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_232",defaultId:92), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_234",defaultId:93), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_238",defaultId:95), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_230",defaultId:91)})}), #"SYSTEM_SYSRULES_dd_dr"('id': 7, 'inputs': {#"SYSTEM_SYSRULES_dd_dri"('id': 14, 'decisionInputId': 1, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"DESMARCA DE CRÉDITO DE VIVIENDA POR 43 BIS", "DEVOLUCIÓN DE EXCEDENTES POR T.A FOVISSSTE", "DEVOLUCIÓN DE SALDOS EXCEDENTES POR 43 BIS", "DEVOLUCIÓN DE SALDOS EXCEDENTES POR T.A A.G", "SOLICITUD DE DESMARCA FOVISSSTE", "SOLICITUD DE MARCA DE CUENTAS POR 43 BIS", "TRANSFERENCIA DE RECURSOS POR PORTABILIDAD", "TRANSFERENCIA POR ANUALIDAD GARANTIZADA", "TRANSFERENCIAS DE ACREDITADOS FOVISSSTE", "TRANSFERENCIAS DE ACREDITADOS INFONAVIT", "USO DE GARANTÍA POR 43 BIS", "APORTACIONES SUBSECUENTES FOVISSSTE"})), #"SYSTEM_SYSRULES_dd_dri"('id': 15, 'decisionInputId': 3, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"ACREDITAR MOVIMIENTOS"}))}, 'outputs': {#"SYSTEM_SYSRULES_dd_dro"('id': 7, 'decisionOutputId': 1, 'value': {a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_230",defaultId:91), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_232",defaultId:92), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_234",defaultId:93), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_238",defaultId:95)})}), #"SYSTEM_SYSRULES_dd_dr"('id': 8, 'inputs': {#"SYSTEM_SYSRULES_dd_dri"('id': 16, 'decisionInputId': 1, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"DESMARCA DE CRÉDITO DE VIVIENDA POR 43 BIS", "DEVOLUCIÓN DE EXCEDENTES POR T.A FOVISSSTE", "DEVOLUCIÓN DE SALDOS EXCEDENTES POR 43 BIS", "DEVOLUCIÓN DE SALDOS EXCEDENTES POR T.A A.G", "SOLICITUD DE DESMARCA FOVISSSTE", "SOLICITUD DE MARCA DE CUENTAS POR 43 BIS", "TRANSFERENCIA DE RECURSOS POR PORTABILIDAD", "TRANSFERENCIA POR ANUALIDAD GARANTIZADA", "TRANSFERENCIAS DE ACREDITADOS FOVISSSTE", "TRANSFERENCIAS DE ACREDITADOS INFONAVIT", "USO DE GARANTÍA POR 43 BIS"})), #"SYSTEM_SYSRULES_dd_dri"('id': 17, 'decisionInputId': 3, 'operator': #"SYSTEM_SYSRULES_dd_dop"('operator': #"SYSTEM_SYSRULES_dd_dopt"("IN"), 'value1': {"BUSQUEDA DE ARCHIVOS OPERATIVOS"}))}, 'outputs': {#"SYSTEM_SYSRULES_dd_dro"('id': 8, 'decisionOutputId': 1, 'value': {a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_230",defaultId:91), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_232",defaultId:92), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_234",defaultId:93), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_238",defaultId:95), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_242",defaultId:97), a!reference_appian_internal(type:'type!{http://www.appian.com/ae/types/2009}Group',uuid:"_e-0000eccb-2911-8000-9af5-01075c01075c_252",defaultId:102)})})}, 'isUnique': true, 'defaultOutputs': {#"SYSTEM_SYSRULES_dd_dro"('id': 1, 'decisionOutputId': 1, 'value': {})})),#"SYSTEM_SYSRULES_dd_exr"(decisionDefinition:local!decisiondefinition,executionInputs:{#"SYSTEM_SYSRULES_dd_dei"(decisionInputId:1,value:'ri!Process'),#"SYSTEM_SYSRULES_dd_dei"(decisionInputId:3,value:'ri!UserAction')})))</definition>
+        <namedTypedValue>
+            <name>Process</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>UserAction</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <preferredEditor>legacy</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+        <inputMetadataList>
+            <inputMetadata>
+                <inputId>1</inputId>
+                <nameRef>Process</nameRef>
+                <allowedLabelsExpr></allowedLabelsExpr>
+                <allowedValuesExpr></allowedValuesExpr>
+            </inputMetadata>
+            <inputMetadata>
+                <inputId>3</inputId>
+                <nameRef>UserAction</nameRef>
+                <allowedLabelsExpr></allowedLabelsExpr>
+                <allowedValuesExpr></allowedValuesExpr>
+            </inputMetadata>
+        </inputMetadataList>
+        <outputMetadataList>
+            <outputMetadata>
+                <outputId>1</outputId>
+                <nameRef>Groups</nameRef>
+                <typeName>{http://www.appian.com/ae/types/2009}Group?list</typeName>
+            </outputMetadata>
+        </outputMetadataList>
+        <hitPolicy>UNIQUE</hitPolicy>
+    </decision>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <history>
+        <historyInfo versionUuid="_a-0000eccb-293d-8000-9ba8-011c48011c48_172597"/>
+        <historyInfo versionUuid="_a-0000ecfb-6f0d-8000-9baa-011c48011c48_211942"/>
+        <historyInfo versionUuid="_a-0000ed69-baa7-8000-9bad-011c48011c48_271332"/>
+        <historyInfo versionUuid="_a-0000ee8d-fa8b-8000-9bbb-011c48011c48_391624"/>
+        <historyInfo versionUuid="_a-0000ee8d-fa8b-8000-9bbb-011c48011c48_397178"/>
+        <historyInfo versionUuid="_a-0000eeb4-c217-8000-9bbf-011c48011c48_459764"/>
+        <historyInfo versionUuid="_a-0000eeff-85fb-8000-9bc1-011c48011c48_472411"/>
+        <historyInfo versionUuid="_a-0000ef47-4270-8000-9bc5-011c48011c48_565343"/>
+    </history>
+</contentHaul>
